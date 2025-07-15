@@ -26,4 +26,4 @@
  * ```
  */
 
-import "./ui/index";
+import './ui/index'

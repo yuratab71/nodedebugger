@@ -3,8 +3,13 @@
 import { contextBridge, ipcRenderer } from "electron";
 import { PROCESS_LOG, START_SUBPROCESS } from "./constants";
 
-contextBridge.exposeInMainWorld("electronAPI", {
-  startProcess: () => ipcRenderer.send(START_SUBPROCESS),
-  onProcessLog: (callback: any) =>
-    ipcRenderer.on(PROCESS_LOG, (_, msg) => callback(msg)),
-});
+const Window: Pick<Window, "electronAPI"> = {
+  electronAPI: {
+    startProcess: () => ipcRenderer.send(START_SUBPROCESS),
+
+    onProcessLog: (callback: any) =>
+      ipcRenderer.on(PROCESS_LOG, (_, msg) => callback(msg)),
+  },
+};
+
+contextBridge.exposeInMainWorld('electronAPI', Window.electronAPI)
