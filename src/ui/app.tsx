@@ -16,12 +16,16 @@ export default function Main() {
 
 	const handleStart = () => {
 		window.electronAPI.startProcess();
-		setLogs((prev) => [...prev, "Started external process..."]);
+	};
+
+	const handleKill = () => {
+		window.electronAPI.terminateProcess();
 	};
 	return (
 		<div>
 			<h1>Nquisitor</h1>
 			<button onClick={handleStart}>Start Process</button>
+			<button onClick={handleKill}>Terminate Process</button>
 		<pre style={{ background: '#111', color: '#0f0', padding: '1em', marginTop: '1em', height: 300, overflowY: 'scroll' }}>
         {logs.join('\n')}
       </pre>
