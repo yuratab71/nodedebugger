@@ -1,6 +1,7 @@
 import { app, BrowserWindow, ipcMain } from "electron";
 import { spawn, ChildProcessWithoutNullStreams } from "node:child_process";
 import path from "path";
+import pidusage from "pidusage";
 import {
     PROCESS_LOG,
     START_SUBPROCESS,
@@ -79,6 +80,10 @@ ipcMain.on(START_SUBPROCESS, () => {
         subprocess = spawn("node", [
             path.normalize("C:\\Users\\ASUS\\Desktop\\nest_app\\dist\\main.js"),
         ]);
+
+        pidusage(subprocess.pid, (_, stats) => {
+            console.log(stats);
+        });
 
         subprocess.stdout.on("data", (data) => {
             mainWindow.webContents.send(PROCESS_LOG, data.toString());
