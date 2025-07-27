@@ -1,24 +1,33 @@
-import { app, BrowserWindow, ipcMain } from "electron";
+import { app, BrowserWindow, ipcMain, IpcMainEvent } from "electron";
 import { spawn, ChildProcessWithoutNullStreams } from "node:child_process";
 import path from "path";
-import pidusage from "pidusage";
+import { WebSocket } from "ws";
 import {
     PROCESS_LOG,
+    SET_CONNECTION_STRING,
+    SET_WS_STATUS,
     START_SUBPROCESS,
     TERMINATE_SUBPROCESS,
 } from "./constants";
-import { passMessage } from "./logger";
+import { passMessage } from "./modules/logger";
+import { ConnectionStatus, initWs } from "./modules/wsdbserver";
 
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
 declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
 
-let subprocess: ChildProcessWithoutNullStreams;
+let subprocess: ChildProcessWithoutNullStreams; 
+// eslint-disable-next-line
+let ws: WebSocket;
+
+let mainWindow: BrowserWindow;
 
 if (require("electron-squirrel-startup")) {
     app.quit();
 }
 
-let mainWindow: BrowserWindow;
+const sendStatus = (status: ConnectionStatus) => {
+    mainWindow.webContents.send(SET_WS_STATUS, status);
+};
 
 const createWindow = (): void => {
     mainWindow = new BrowserWindow({
@@ -30,6 +39,8 @@ const createWindow = (): void => {
     });
 
     mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
+
+    sendStatus("not active");
 };
 
 app.on("ready", createWindow);
@@ -54,20 +65,17 @@ ipcMain.on(START_SUBPROCESS, () => {
     if (isProcessRunning()) {
         mainWindow.webContents.send(
             PROCESS_LOG,
-            passMessage("process already running")
+            passMessage("process already running"),
         );
     } else {
         mainWindow.webContents.send(
             PROCESS_LOG,
-            passMessage("starting and external process")
+            passMessage("starting and external process"),
         );
         subprocess = spawn("node", [
+            "--inspect-brk",
             path.normalize("C:\\Users\\ASUS\\Desktop\\nest_app\\dist\\main.js"),
         ]);
-
-        pidusage(subprocess.pid, (_, stats) => {
-            console.log(stats);
-        });
 
         subprocess.stdout.on("data", (data) => {
             mainWindow.webContents.send(PROCESS_LOG, data.toString());
@@ -76,30 +84,42 @@ ipcMain.on(START_SUBPROCESS, () => {
         subprocess.stderr.on("data", (data) => {
             mainWindow.webContents.send(
                 PROCESS_LOG,
-                `ERROR: ${data.toString()}`
+                `ERROR: ${data.toString()}`,
             );
         });
 
         subprocess.on("exit", (code) => {
             mainWindow.webContents.send(
                 PROCESS_LOG,
-                passMessage(`Process exited with code ${code}`)
+                passMessage(`Process exited with code ${code}`),
             );
         });
+
+
     }
 });
 
 ipcMain.on(TERMINATE_SUBPROCESS, () => {
-    if (!subprocess.killed && subprocess.exitCode == null) {
+    if (isProcessRunning()) {
         mainWindow.webContents.send(
             PROCESS_LOG,
-            passMessage("terminating the process")
+            passMessage("terminating the process"),
         );
         subprocess.kill();
     } else {
         mainWindow.webContents.send(
             PROCESS_LOG,
-            passMessage("process isnt running")
+            passMessage("process isnt running"),
         );
     }
+});
+
+ipcMain.on(SET_CONNECTION_STRING, (_: IpcMainEvent, connectionString: string) => {
+    if (ws?.readyState != WebSocket.OPEN) { ws = initWs(connectionString, sendStatus) } else {
+        mainWindow.webContents.send(PROCESS_LOG, passMessage("Debugger already attached"));
+    }
+})
+
+ipcMain.on(SET_WS_STATUS, (event: IpcMainEvent, status: string) => {
+    mainWindow.webContents.send(SET_WS_STATUS, status);
 });

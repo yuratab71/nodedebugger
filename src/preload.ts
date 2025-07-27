@@ -3,6 +3,8 @@
 import { contextBridge, ipcRenderer } from "electron";
 import {
     PROCESS_LOG,
+    SET_CONNECTION_STRING,
+    SET_WS_STATUS,
     START_SUBPROCESS,
     TERMINATE_SUBPROCESS,
 } from "./constants";
@@ -11,7 +13,10 @@ const Window: Pick<Window, "electronAPI"> = {
     electronAPI: {
         startProcess: () => ipcRenderer.send(START_SUBPROCESS),
         terminateProcess: () => ipcRenderer.send(TERMINATE_SUBPROCESS),
-        onProcessLog: (callback: any) =>
+        connectWebSocket: (connection: string) =>
+            ipcRenderer.send(SET_CONNECTION_STRING, connection),
+        setWsStatus: (callback: (status: string) => void) => { ipcRenderer.on(SET_WS_STATUS, (_, status)=> callback(status)) },
+        onProcessLog: (callback: (msg: string) => void) =>
             ipcRenderer.on(PROCESS_LOG, (_, msg) => callback(msg)),
     },
 };
