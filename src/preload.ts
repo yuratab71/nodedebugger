@@ -9,8 +9,8 @@ import {
     SET_WS_STATUS,
     START_SUBPROCESS,
     TERMINATE_SUBPROCESS,
-} from "./constants";
-import { DebuggingResponse } from "./modules/debuggigmessages";
+} from "./constants/commands";
+import { DebuggingResponse } from "./modules/debugger";
 
 const Window: Pick<Window, "electronAPI"> = {
     electronAPI: {

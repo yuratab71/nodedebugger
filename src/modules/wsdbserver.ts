@@ -1,35 +1,25 @@
+import { Status } from "../constants/status";
 import { RawData, WebSocket } from "ws";
-import {
-    DebuggingMessage,
-    DebuggingResponse,
-    MEMORY_USAGE_ID,
-} from "./debuggigmessages";
-
-export type ConnectionStatus =
-    | "connected"
-    | "disconnected"
-    | "not active"
-    | "error";
+import { DebuggingResponse } from "./debugger";
 
 export const initWs = (
     url: string,
-    setStatus: (status: ConnectionStatus) => void,
+    setStatus: (status: Status) => void,
     processMessage: (message: DebuggingResponse) => void,
 ) => {
     const ws = new WebSocket(url);
 
     ws.on("error", () => {
         console.error;
-        setStatus("error");
+        setStatus(Status.ERROR);
     });
 
     ws.on("open", () => {
-        console.log("open");
-        setStatus("connected");
+        setStatus(Status.CONNECTED);
     });
 
     ws.on("close", () => {
-        setStatus("disconnected");
+        setStatus(Status.DISCONNECTED);
     });
 
     ws.on("message", function message(data: RawData) {

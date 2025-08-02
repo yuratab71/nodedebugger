@@ -1,15 +1,17 @@
 import { useEffect, useState } from "react";
-import { MemoryValue } from "../modules/debuggigmessages";
-import { MemoryUsageUIComponent } from "./memoryUsage";
+import { Status } from "../constants/status";
+import { MemoryValue } from "../modules/debugger";
+import { MemoryUsageUIComponent } from "./components/memoryUsage";
 
 export default function Main() {
 	const [logs, setLogs] = useState([]);
 	const [wsuuid, setWsUuid] = useState("");
-	const [wsStatus, setWsstatus] = useState("unknown");
+	const [wsStatus, setWsstatus] = useState(Status.NOT_ACTIVE);
 
 	const [memoryUsage, setMemoryUsage] = useState<MemoryValue | null>(null);
 	
 	useEffect(() => {
+		try {
 	window.electronAPI.onProcessLog((msg) => {
 		setLogs((prev) => [...prev, msg.trim()])
 			});
@@ -18,8 +20,12 @@ export default function Main() {
 		setWsstatus(status);
 		})
 	window.electronAPI.setMemoryUsage((data) => {
-		setMemoryUsage(data?.result.result.value);
+		setMemoryUsage(data?.result?.result?.value);
+
 		})
+		} catch (e) {
+	console.error(e);
+		}
 		}, []
 	);
 
@@ -56,7 +62,7 @@ export default function Main() {
 		<pre style={{ background: '#111', color: '#0f0', padding: '1em', marginTop: '1em', height: 300, overflowY: 'scroll' }}>
         {logs.join('\n')}
       </pre>
-			{memoryUsage && <MemoryUsageUIComponent rss={memoryUsage.rss} heapTotal={memoryUsage.heapTotal} heapUsed={memoryUsage.heapUsed} external={memoryUsage.external}/>}
+			{memoryUsage && <MemoryUsageUIComponent isConnected={wsStatus === "connected"} rss={memoryUsage.rss} heapTotal={memoryUsage.heapTotal} heapUsed={memoryUsage.heapUsed} external={memoryUsage.external}/>}
 		</div>
 	);
 

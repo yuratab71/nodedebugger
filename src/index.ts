@@ -10,15 +10,13 @@ import {
     SET_WS_STATUS,
     START_SUBPROCESS,
     TERMINATE_SUBPROCESS,
-} from "./constants";
-import {
-    DebuggingMessage,
-    DebuggingResponse,
-    MEMORY_USAGE_ID,
-    RUNTIME,
-} from "./modules/debuggigmessages";
+} from "./constants/commands";
+import { Status } from "./constants/status";
+import { DebuggerDomain } from "./domains/debugger";
+import { RuntimeDomain } from "./domains/runtime";
+import { DebuggingResponse, MEMORY_USAGE_ID } from "./modules/debugger";
 import { passMessage } from "./modules/logger";
-import { ConnectionStatus, initWs } from "./modules/wsdbserver";
+import { initWs } from "./modules/wsdbserver";
 
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
 declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
@@ -26,9 +24,13 @@ declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
 let subprocess: ChildProcessWithoutNullStreams;
 // eslint-disable-next-line
 let ws: WebSocket;
+let runtimeDomain: RuntimeDomain;
+let debuggerDomain: DebuggerDomain;
 
-let status: ConnectionStatus = "not active";
-let messageId = 2;
+let status: Status = Status.NOT_ACTIVE;
+let isStringChecked = false;
+let connectionString = null;
+let messageId = 4;
 
 let mainWindow: BrowserWindow;
 
@@ -36,7 +38,7 @@ if (require("electron-squirrel-startup")) {
     app.quit();
 }
 
-const sendStatus = (st: ConnectionStatus) => {
+const sendStatus = (st: Status) => {
     status = st;
     mainWindow.webContents.send(SET_WS_STATUS, status);
 };
@@ -52,18 +54,11 @@ const createWindow = (): void => {
 
     mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
 
-    sendStatus("not active");
+    sendStatus(Status.NOT_ACTIVE);
 
     setInterval(() => {
-        if (status === "connected") {
-            ws.send(
-                JSON.stringify(
-                    new DebuggingMessage(MEMORY_USAGE_ID, RUNTIME.evaluate, {
-                        expression: "process.memoryUsage()",
-                        returnByValue: true,
-                    }),
-                ),
-            );
+        if (status === "connected" && !!runtimeDomain) {
+            runtimeDomain.getMemoryUsage(MEMORY_USAGE_ID);
         }
     }, 2000);
 };
@@ -83,7 +78,6 @@ app.on("activate", () => {
 });
 
 const processMessage = (message: DebuggingResponse) => {
-    console.log(message);
     switch (message.id) {
         case MEMORY_USAGE_ID:
             mainWindow.webContents.send(SET_MEMORY_USAGE, message);
@@ -117,6 +111,22 @@ ipcMain.on(START_SUBPROCESS, () => {
         });
 
         subprocess.stderr.on("data", (data) => {
+            if (!isStringChecked) {
+                const str = data.toString();
+
+                const match = str.match(
+                    /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}/,
+                );
+
+                if (match) {
+                    connectionString = match[0];
+                    console.log(
+                        `Connection string is ws://127.0.0.1:9229/${match[0]}`,
+                    );
+
+                    isStringChecked = true;
+                }
+            }
             mainWindow.webContents.send(
                 PROCESS_LOG,
                 `ERROR: ${data.toString()}`,
@@ -139,6 +149,7 @@ ipcMain.on(TERMINATE_SUBPROCESS, () => {
             passMessage("terminating the process"),
         );
         subprocess.kill();
+        isStringChecked = false;
     } else {
         mainWindow.webContents.send(
             PROCESS_LOG,
@@ -152,6 +163,8 @@ ipcMain.on(
     (_: IpcMainEvent, connectionString: string) => {
         if (ws?.readyState != WebSocket.OPEN) {
             ws = initWs(connectionString, sendStatus, processMessage);
+            runtimeDomain = new RuntimeDomain(ws);
+            debuggerDomain = new DebuggerDomain(ws);
         } else {
             mainWindow.webContents.send(
                 PROCESS_LOG,
@@ -166,10 +179,5 @@ ipcMain.on(SET_WS_STATUS, (_: IpcMainEvent, status: string) => {
 });
 
 ipcMain.on(RESUME_EXECUTION, () => {
-    console.log(messageId);
-    ws.send(
-        JSON.stringify(
-            new DebuggingMessage(messageId++, RUNTIME.runIfWaitingForDebugger),
-        ),
-    );
+    runtimeDomain.runIfWaitingForDebugger(messageId++);
 });
