@@ -25,5 +25,5 @@
  *  });
  * ```
  */
-
-import './ui/index'
+import "./index.css";
+import "./ui/index";
