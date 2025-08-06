@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Status } from "../constants/status";
 import { MemoryValue } from "../modules/debugger";
+import { Button } from "./components/common/button";
 import { MemoryUsageUIComponent } from "./components/memoryUsage";
 import { NavbarUIComponent } from "./components/navbar";
 
@@ -50,8 +51,8 @@ export default function Main() {
         <div className="app_container">
             <div>
                 <NavbarUIComponent status={wsStatus}/>
-                <button onClick={handleStart}>Start Process</button>
-                <button onClick={handleKill}>Terminate Process</button>
+                <Button text={"Start Subprocess"} onClick={handleStart}/>
+                <Button text={"Terminate Subprocess"} onClick={handleKill}/>
                 <label>
                     Ws: 
                     <input
@@ -60,14 +61,10 @@ export default function Main() {
                         name="wsConnection"
                     />
                 </label>
-                <button onClick={connectToDebuggingServer}>
-                    Connect to debugging server
-                </button>
-                <button
+                <Button text={"Connect debugger"} onClick={connectToDebuggingServer}/>
+                <Button text={"Resume"}
                     onClick={resumeExecution}
-                    disabled={wsStatus != "connected"}>
-                    Resume
-                </button>
+                    disabled={wsStatus != "connected"}/>
                 <pre
                     style={{
                         background: "#111",
