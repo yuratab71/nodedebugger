@@ -3,16 +3,11 @@ body {
     Arial, sans-serif;
   margin: auto;
   max-width: 100%;
+  min-height: 100vh;
   border-radius: 3px;
-  border-color: blue;
+  border-color: red;
   border-style: solid;
-  padding: 3px;
-  margin: 3px;
-
+  margin: 0px;
+  padding: 5px;
   display: grid;
-}
-
-.memoryUsage {
-  background-color: grey;
-  font-size: 8px;
 };

@@ -1,10 +1,10 @@
-import { WebSocket } from "ws";
+import { WS } from "../modules/wsdbserver";
 
 export class DebuggerDomain {
-    readonly ws: WebSocket;
+    readonly ws: WS;
     readonly ENABLE: string = "Debugger.enable";
 
-    constructor(socket: WebSocket) {
+    constructor(socket: WS) {
         this.ws = socket;
     }
 

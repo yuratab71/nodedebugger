@@ -1,4 +1,4 @@
-import WebSocket from "ws";
+import { WS } from "../modules/wsdbserver";
 
 type RuntimeParams = {
     expression?: string;
@@ -6,13 +6,13 @@ type RuntimeParams = {
 };
 
 export class RuntimeDomain {
-    private readonly ws: WebSocket;
+    private readonly ws: WS;
     private readonly ENABLE: string = "Runtime.enable";
     private readonly EVALUATE: string = "Runtime.evaluate";
     private readonly RUN_IF_WAITING_FOR_DEBUGGER =
         "Runtime.runIfWaitingForDebugger";
 
-    constructor(socket: WebSocket) {
+    constructor(socket: WS) {
         this.ws = socket;
     }
 

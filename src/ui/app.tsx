@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Status } from "../constants/status";
 import { MemoryValue } from "../modules/debugger";
 import { MemoryUsageUIComponent } from "./components/memoryUsage";
+import { NavbarUIComponent } from "./components/navbar";
 
 export default function Main() {
     const [logs, setLogs] = useState([]);
@@ -48,12 +49,11 @@ export default function Main() {
     return (
         <div className="app_container">
             <div>
-                <h1>Nquisitor</h1>
-                <h2>Connection: {wsStatus}</h2>
+                <NavbarUIComponent status={wsStatus}/>
                 <button onClick={handleStart}>Start Process</button>
                 <button onClick={handleKill}>Terminate Process</button>
                 <label>
-                    Ws:{" "}
+                    Ws: 
                     <input
                         value={wsuuid || ""}
                         onChange={onChange}

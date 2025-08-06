@@ -1,7 +1,6 @@
 import { app, BrowserWindow, ipcMain, IpcMainEvent } from "electron";
 import { spawn, ChildProcessWithoutNullStreams } from "node:child_process";
 import path from "path";
-import { WebSocket } from "ws";
 import {
     PROCESS_LOG,
     RESUME_EXECUTION,
@@ -16,14 +15,14 @@ import { DebuggerDomain } from "./domains/debugger";
 import { RuntimeDomain } from "./domains/runtime";
 import { DebuggingResponse, MEMORY_USAGE_ID } from "./modules/debugger";
 import { passMessage } from "./modules/logger";
-import { initWs } from "./modules/wsdbserver";
+import { WS } from "./modules/wsdbserver";
 
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
 declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
 
 let subprocess: ChildProcessWithoutNullStreams;
 // eslint-disable-next-line
-let ws: WebSocket;
+let ws: WS;
 let runtimeDomain: RuntimeDomain;
 let debuggerDomain: DebuggerDomain;
 
@@ -77,7 +76,7 @@ app.on("activate", () => {
     }
 });
 
-const processMessage = (message: DebuggingResponse) => {
+const processWebSocketMessage = (message: DebuggingResponse) => {
     switch (message.id) {
         case MEMORY_USAGE_ID:
             mainWindow.webContents.send(SET_MEMORY_USAGE, message);
@@ -149,6 +148,7 @@ ipcMain.on(TERMINATE_SUBPROCESS, () => {
             passMessage("terminating the process"),
         );
         subprocess.kill();
+        ws = null;
         isStringChecked = false;
     } else {
         mainWindow.webContents.send(
@@ -161,8 +161,12 @@ ipcMain.on(TERMINATE_SUBPROCESS, () => {
 ipcMain.on(
     SET_CONNECTION_STRING,
     (_: IpcMainEvent, connectionString: string) => {
-        if (ws?.readyState != WebSocket.OPEN) {
-            ws = initWs(connectionString, sendStatus, processMessage);
+        if (!WS.isReady(ws)) {
+            ws = new WS({
+                url: connectionString,
+                onStatusChange: sendStatus,
+                onMessage: processWebSocketMessage,
+            });
             runtimeDomain = new RuntimeDomain(ws);
             debuggerDomain = new DebuggerDomain(ws);
         } else {
