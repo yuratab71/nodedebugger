@@ -119,7 +119,7 @@ ipcMain.on(SET_DIRECTORY, async () => {
         result.filePaths.length > 0 &&
         result.filePaths[0]
     ) {
-        fileManager = new FileManager(result.filePaths[0]);
+        fileManager = FileManager.instance(result.filePaths[0]);
         return;
     }
 
@@ -163,11 +163,11 @@ ipcMain.on(TERMINATE_SUBPROCESS, () => {
 });
 
 const onConnectToDebugger = (connectionString: string) => {
-    if (!WS.isReady(ws)) {
-        ws = new WS({
+    if (!WS.isConnected()) {
+        ws = WS.instance({
             url: connectionString,
-            onStatusChange: sendStatus,
-            onMessage: processWebSocketMessage,
+            onStatusUpdateCallback: sendStatus,
+            onMessageCallback: processWebSocketMessage,
         });
         runtimeDomain = new RuntimeDomain(ws);
         // debuggerDomain = new DebuggerDomain(ws);

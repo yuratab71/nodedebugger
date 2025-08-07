@@ -1,37 +1,52 @@
 import { Status } from "../constants/status";
 import { RawData, WebSocket } from "ws";
 import { DebuggingResponse } from "./debugger";
+import { FileManager } from "./fileManager";
 
 type WsInitParams = {
     url: string;
-    onStatusChange: (status: Status) => void;
-    onMessage: (message: DebuggingResponse) => void;
+    onStatusUpdateCallback: (status: Status) => void;
+    onMessageCallback: (msg: DebuggingResponse) => void;
 };
 
 export class WS {
-    private readonly ws: WebSocket;
-    public status = Status.NOT_ACTIVE;
+    private readonly webSocket: WebSocket;
+    private readonly url: string;
+    status = Status.NOT_ACTIVE;
 
-    constructor(params: WsInitParams) {
-        this.ws = new WebSocket(params.url);
-        this.ws.on("error", () => {
-            this.status = Status.ERROR;
-            params.onStatusChange(Status.ERROR);
+    static #instance: WS;
+    static instance(params: WsInitParams) {
+        if (!WS.#instance) {
+            WS.#instance = new WS(params);
+        }
+
+        return WS.#instance;
+    }
+
+    private constructor({
+        url,
+        onStatusUpdateCallback,
+        onMessageCallback,
+    }: WsInitParams) {
+        this.url = url;
+        this.webSocket = new WebSocket(this.url);
+
+        this.webSocket.on("error", () => {
+            console.error;
+            onStatusUpdateCallback(Status.ERROR);
         });
 
-        this.ws.on("open", () => {
-            this.status = Status.CONNECTED;
-            params.onStatusChange(Status.CONNECTED);
+        this.webSocket.on("open", () => {
+            onStatusUpdateCallback(Status.CONNECTED);
         });
 
-        this.ws.on("close", () => {
-            params.onStatusChange(Status.DISCONNECTED);
-            params.onStatusChange(Status.DISCONNECTED);
+        this.webSocket.on("close", () => {
+            onStatusUpdateCallback(Status.DISCONNECTED);
         });
 
-        this.ws.on("message", function message(data: RawData) {
+        this.webSocket.on("message", function message(data: RawData) {
             try {
-                params.onMessage(
+                onMessageCallback(
                     JSON.parse(data.toString()) as DebuggingResponse,
                 );
             } catch (e) {
@@ -40,15 +55,11 @@ export class WS {
         });
     }
 
-    public getStatus(): Status {
-        return this.status;
+    static isConnected(): boolean {
+        return WS.#instance?.webSocket?.readyState === WebSocket.OPEN;
     }
 
-    static isReady(instance: WS): boolean {
-        return !(instance === null || instance === undefined);
-    }
-
-    public send(message: string) {
-        this.ws.send(message);
+    send(message: string): void {
+        this.webSocket.send(message);
     }
 }

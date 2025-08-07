@@ -11,7 +11,17 @@ export class FileManager {
     subprocessPackageJson: PackageJson;
     subprocessTsConfig: TsConfigJson;
 
-    constructor(src: string) {
+    static #instance: FileManager;
+
+    static instance(src: string): FileManager {
+        if (!FileManager.#instance) {
+            FileManager.#instance = new FileManager(src);
+        }
+
+        return FileManager.#instance;
+    }
+
+    private constructor(src: string) {
         this.dir = src;
 
         this.main = "test";
