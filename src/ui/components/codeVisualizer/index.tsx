@@ -4,6 +4,6 @@ export type CodeVisualizerUIComponentProps = {
     text: string;
 }
 
-export const CodeVisualizerUIComponent: React.FC<CodeVisualizerUIComponentProps> = ({ text: string }): JSX.Element => {
-    return <div>Code Visualizer</div>;
+export const CodeVisualizerUIComponent: React.FC<CodeVisualizerUIComponentProps> = ({ text }: CodeVisualizerUIComponentProps): JSX.Element => {
+    return <div>{text}</div>
 };

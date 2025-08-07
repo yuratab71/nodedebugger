@@ -1,34 +1,35 @@
-import { app, BrowserWindow, ipcMain, IpcMainEvent } from "electron";
-import { spawn, ChildProcessWithoutNullStreams } from "node:child_process";
+import { app, BrowserWindow, dialog, ipcMain, IpcMainEvent } from "electron";
 import path from "path";
 import {
+    CONNECT_TO_DEBUGGER,
     PROCESS_LOG,
     RESUME_EXECUTION,
-    SET_CONNECTION_STRING,
+    SET_DIRECTORY,
     SET_MEMORY_USAGE,
     SET_WS_STATUS,
     START_SUBPROCESS,
     TERMINATE_SUBPROCESS,
 } from "./constants/commands";
 import { Status } from "./constants/status";
-import { DebuggerDomain } from "./domains/debugger";
+// import { DebuggerDomain } from "./domains/debugger";
 import { RuntimeDomain } from "./domains/runtime";
 import { DebuggingResponse, MEMORY_USAGE_ID } from "./modules/debugger";
+import { FileManager } from "./modules/fileManager";
 import { passMessage } from "./modules/logger";
+import Subprocess from "./modules/subprocess";
 import { WS } from "./modules/wsdbserver";
 
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
 declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
 
-let subprocess: ChildProcessWithoutNullStreams;
 // eslint-disable-next-line
 let ws: WS;
 let runtimeDomain: RuntimeDomain;
-let debuggerDomain: DebuggerDomain;
+// let debuggerDomain: DebuggerDomain;
 
+let fileManager: FileManager;
+let subprocess: Subprocess;
 let status: Status = Status.NOT_ACTIVE;
-let isStringChecked = false;
-let connectionString = null;
 let messageId = 4;
 
 let mainWindow: BrowserWindow;
@@ -83,73 +84,76 @@ const processWebSocketMessage = (message: DebuggingResponse) => {
     }
 };
 
-const isProcessRunning = (): boolean => {
-    return !subprocess?.killed && subprocess?.exitCode === null;
+const subprocessOnData = (data: any) => {
+    mainWindow.webContents.send(PROCESS_LOG, data.toString());
 };
 
-ipcMain.on(START_SUBPROCESS, () => {
-    if (isProcessRunning()) {
-        mainWindow.webContents.send(
-            PROCESS_LOG,
-            passMessage("process already running"),
-        );
-    } else {
-        mainWindow.webContents.send(
-            PROCESS_LOG,
-            passMessage("starting and external process"),
-        );
-        subprocess = spawn("node", [
-            "--inspect-brk",
-            "--max-old-space-size=1024",
-            "--trace-gc",
-            path.normalize("C:\\Users\\ASUS\\Desktop\\nest_app\\dist\\main.js"),
-        ]);
+const subprocessOnErrror = (data: any) => {
+    const str = data.toString();
 
-        subprocess.stdout.on("data", (data) => {
-            mainWindow.webContents.send(PROCESS_LOG, data.toString());
-        });
+    const match = str.match(
+        /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}/,
+    );
 
-        subprocess.stderr.on("data", (data) => {
-            if (!isStringChecked) {
-                const str = data.toString();
-
-                const match = str.match(
-                    /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}/,
-                );
-
-                if (match) {
-                    connectionString = match[0];
-                    console.log(
-                        `Connection string is ws://127.0.0.1:9229/${match[0]}`,
-                    );
-
-                    isStringChecked = true;
-                }
-            }
-            mainWindow.webContents.send(
-                PROCESS_LOG,
-                `ERROR: ${data.toString()}`,
-            );
-        });
-
-        subprocess.on("exit", (code) => {
-            mainWindow.webContents.send(
-                PROCESS_LOG,
-                passMessage(`Process exited with code ${code}`),
-            );
-        });
+    if (match) {
+        onConnectToDebugger(`ws://127.0.0.1:9229/${match[0]}`);
+        console.log(`Connection string is ws://127.0.0.1:9229/${match[0]}`);
     }
+    mainWindow.webContents.send(PROCESS_LOG, `ERROR: ${data.toString()}`);
+};
+
+const subprocessOnExit = (code: number, signal: NodeJS.Signals) => {
+    mainWindow.webContents.send(
+        PROCESS_LOG,
+        passMessage(`Process exited with code ${code} and signal:${signal}`),
+    );
+};
+
+// main event that trigger all application, must be set first;
+ipcMain.on(SET_DIRECTORY, async () => {
+    const result = await dialog.showOpenDialog({
+        properties: ["openDirectory"],
+    });
+    if (
+        !result.canceled &&
+        result.filePaths.length > 0 &&
+        result.filePaths[0]
+    ) {
+        fileManager = new FileManager(result.filePaths[0]);
+        return;
+    }
+
+    console.log("Unable to locate directory");
+});
+
+ipcMain.on(START_SUBPROCESS, () => {
+    if (subprocess?.isRunning()) {
+        mainWindow.webContents.send(
+            PROCESS_LOG,
+            passMessage("Process already running"),
+        );
+        return;
+    }
+    mainWindow.webContents.send(
+        PROCESS_LOG,
+        passMessage("starting and external process"),
+    );
+
+    subprocess = new Subprocess({
+        src: path.normalize(fileManager.getPathToMain()),
+        onData: subprocessOnData,
+        onError: subprocessOnErrror,
+        onExit: subprocessOnExit,
+    });
 });
 
 ipcMain.on(TERMINATE_SUBPROCESS, () => {
-    if (isProcessRunning()) {
+    if (subprocess.isRunning()) {
         mainWindow.webContents.send(
             PROCESS_LOG,
             passMessage("terminating the process"),
         );
         subprocess.kill();
-        ws = null;
-        isStringChecked = false;
     } else {
         mainWindow.webContents.send(
             PROCESS_LOG,
@@ -158,24 +162,25 @@ ipcMain.on(TERMINATE_SUBPROCESS, () => {
     }
 });
 
-ipcMain.on(
-    SET_CONNECTION_STRING,
-    (_: IpcMainEvent, connectionString: string) => {
-        if (!WS.isReady(ws)) {
-            ws = new WS({
-                url: connectionString,
-                onStatusChange: sendStatus,
-                onMessage: processWebSocketMessage,
-            });
-            runtimeDomain = new RuntimeDomain(ws);
-            debuggerDomain = new DebuggerDomain(ws);
-        } else {
-            mainWindow.webContents.send(
-                PROCESS_LOG,
-                passMessage("Debugger already attached"),
-            );
-        }
-    },
+const onConnectToDebugger = (connectionString: string) => {
+    if (!WS.isReady(ws)) {
+        ws = new WS({
+            url: connectionString,
+            onStatusChange: sendStatus,
+            onMessage: processWebSocketMessage,
+        });
+        runtimeDomain = new RuntimeDomain(ws);
+        // debuggerDomain = new DebuggerDomain(ws);
+    } else {
+        mainWindow.webContents.send(
+            PROCESS_LOG,
+            passMessage("Debugger already attached"),
+        );
+    }
+};
+
+ipcMain.on(CONNECT_TO_DEBUGGER, (_: IpcMainEvent, connstr: string) =>
+    onConnectToDebugger(connstr),
 );
 
 ipcMain.on(SET_WS_STATUS, (_: IpcMainEvent, status: string) => {

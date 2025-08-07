@@ -2,12 +2,12 @@ import { useEffect, useState } from "react";
 import { Status } from "../constants/status";
 import { MemoryValue } from "../modules/debugger";
 import { Button } from "./components/common/button";
+import { FilePickerUIComponent } from "./components/common/filePicker";
 import { MemoryUsageUIComponent } from "./components/memoryUsage";
 import { NavbarUIComponent } from "./components/navbar";
 
 export default function Main() {
-    const [logs, setLogs] = useState([]);
-    const [wsuuid, setWsUuid] = useState("");
+    const [logs, setLogs] = useState<string[]>([]);
     const [wsStatus, setWsstatus] = useState(Status.NOT_ACTIVE);
 
     const [memoryUsage, setMemoryUsage] = useState<MemoryValue | null>(null);
@@ -37,11 +37,8 @@ export default function Main() {
         window.electronAPI.terminateProcess();
     };
 
-    const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setWsUuid(e.target.value);
-    };
-    const connectToDebuggingServer = () => {
-        window.electronAPI.connectWebSocket(wsuuid);
+   const connectToDebuggingServer = () => {
+        window.electronAPI.connectWebSocket();
     };
 
     const resumeExecution = () => {
@@ -51,17 +48,10 @@ export default function Main() {
         <div className="app_container">
             <div>
                 <NavbarUIComponent status={wsStatus}/>
+                <FilePickerUIComponent />
                 <Button text={"Start Subprocess"} onClick={handleStart}/>
                 <Button text={"Terminate Subprocess"} onClick={handleKill}/>
-                <label>
-                    Ws: 
-                    <input
-                        value={wsuuid || ""}
-                        onChange={onChange}
-                        name="wsConnection"
-                    />
-                </label>
-                <Button text={"Connect debugger"} onClick={connectToDebuggingServer}/>
+               <Button text={"Connect debugger"} onClick={connectToDebuggingServer}/>
                 <Button text={"Resume"}
                     onClick={resumeExecution}
                     disabled={wsStatus != "connected"}/>

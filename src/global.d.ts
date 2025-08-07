@@ -7,12 +7,13 @@ declare global {
         electronAPI: {
             startProcess: () => void;
             terminateProcess: () => void;
-            connectWebSocket: (connection: string) => void;
+            connectWebSocket: () => void;
             resumeExecution: () => void;
             setWsStatus: (callback: (string) => void) => void;
             setMemoryUsage: (
                 callback: (data: DebuggingResponse) => void,
             ) => void;
+            setSubprocessDirectory: () => void;
             onProcessLog: (callback: (string) => void) => void;
         };
     }

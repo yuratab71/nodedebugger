@@ -32,11 +32,6 @@ export type NavbarUIComponentProps = {
     status: Status;
 };
 
-const navbarContainer: React.CSSProperties = {
-    display: "flex",
-    justifyContent: "space-evenly",
-};
-
 const navbarElement: React.CSSProperties = {
     width: "20px",
 };

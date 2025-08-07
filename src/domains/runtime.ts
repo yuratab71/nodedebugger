@@ -24,6 +24,9 @@ export class RuntimeDomain {
         });
     }
 
+    enable(id: number) {
+        this.ws.send(this.getMsg(id, this.ENABLE));
+    }
     runIfWaitingForDebugger(id: number): void {
         this.ws.send(this.getMsg(id, this.RUN_IF_WAITING_FOR_DEBUGGER));
     }
