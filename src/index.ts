@@ -19,6 +19,8 @@ import { passMessage } from "./modules/logger";
 import Subprocess from "./modules/subprocess";
 import { WS } from "./modules/wsdbserver";
 
+let detectedUrl = "";
+
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
 declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
 
@@ -57,7 +59,7 @@ const createWindow = (): void => {
     sendStatus(Status.NOT_ACTIVE);
 
     setInterval(() => {
-        if (status === "connected" && !!runtimeDomain) {
+        if (WS.isConnected() && !!runtimeDomain) {
             runtimeDomain.getMemoryUsage(MEMORY_USAGE_ID);
         }
     }, 2000);
@@ -96,7 +98,7 @@ const subprocessOnErrror = (data: any) => {
     );
 
     if (match) {
-        onConnectToDebugger(`ws://127.0.0.1:9229/${match[0]}`);
+        detectedUrl = `ws://127.0.0.1:9229/${match[0]}`;
         console.log(`Connection string is ws://127.0.0.1:9229/${match[0]}`);
     }
     mainWindow.webContents.send(PROCESS_LOG, `ERROR: ${data.toString()}`);
@@ -127,33 +129,35 @@ ipcMain.on(SET_DIRECTORY, async () => {
 });
 
 ipcMain.on(START_SUBPROCESS, () => {
-    if (subprocess?.isRunning()) {
+    if (Subprocess.isRunning()) {
         mainWindow.webContents.send(
             PROCESS_LOG,
             passMessage("Process already running"),
         );
         return;
     }
-    mainWindow.webContents.send(
-        PROCESS_LOG,
-        passMessage("starting and external process"),
-    );
-
-    subprocess = new Subprocess({
+    subprocess = Subprocess.instance({
         src: path.normalize(fileManager.getPathToMain()),
         onData: subprocessOnData,
         onError: subprocessOnErrror,
         onExit: subprocessOnExit,
     });
+
+    mainWindow.webContents.send(
+        PROCESS_LOG,
+        passMessage(
+            `starting and external process with src: ${subprocess.root}`,
+        ),
+    );
 });
 
 ipcMain.on(TERMINATE_SUBPROCESS, () => {
-    if (subprocess.isRunning()) {
+    if (Subprocess.isRunning()) {
         mainWindow.webContents.send(
             PROCESS_LOG,
             passMessage("terminating the process"),
         );
-        subprocess.kill();
+        Subprocess.kill();
     } else {
         mainWindow.webContents.send(
             PROCESS_LOG,
@@ -163,6 +167,9 @@ ipcMain.on(TERMINATE_SUBPROCESS, () => {
 });
 
 const onConnectToDebugger = (connectionString: string) => {
+    console.log(
+        `Connecting to debugger with ${connectionString} and isAlreadyAttached ${WS.isConnected()}`,
+    );
     if (!WS.isConnected()) {
         ws = WS.instance({
             url: connectionString,
@@ -179,14 +186,22 @@ const onConnectToDebugger = (connectionString: string) => {
     }
 };
 
-ipcMain.on(CONNECT_TO_DEBUGGER, (_: IpcMainEvent, connstr: string) =>
-    onConnectToDebugger(connstr),
-);
+ipcMain.on(CONNECT_TO_DEBUGGER, (_: IpcMainEvent, connstr: string) => {
+    let connectionString;
+    if (!connstr) {
+        connectionString = detectedUrl;
+    } else {
+        connectionString = connstr;
+    }
+
+    onConnectToDebugger(connectionString);
+});
 
 ipcMain.on(SET_WS_STATUS, (_: IpcMainEvent, status: string) => {
     mainWindow.webContents.send(SET_WS_STATUS, status);
 });
 
 ipcMain.on(RESUME_EXECUTION, () => {
+    console.log(RESUME_EXECUTION);
     runtimeDomain.runIfWaitingForDebugger(messageId++);
 });

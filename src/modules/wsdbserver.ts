@@ -1,7 +1,6 @@
 import { Status } from "../constants/status";
 import { RawData, WebSocket } from "ws";
 import { DebuggingResponse } from "./debugger";
-import { FileManager } from "./fileManager";
 
 type WsInitParams = {
     url: string;
@@ -11,7 +10,7 @@ type WsInitParams = {
 
 export class WS {
     private readonly webSocket: WebSocket;
-    private readonly url: string;
+    url: string;
     status = Status.NOT_ACTIVE;
 
     static #instance: WS;
@@ -55,6 +54,11 @@ export class WS {
         });
     }
 
+    static reset(params: WsInitParams) {
+        WS.#instance = new WS(params);
+
+        return WS.#instance;
+    }
     static isConnected(): boolean {
         return WS.#instance?.webSocket?.readyState === WebSocket.OPEN;
     }

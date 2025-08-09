@@ -9,7 +9,7 @@ type SubprocessInitParams = {
 };
 
 export default class Subprocess {
-    private instance: ChildProcessWithoutNullStreams | null;
+    private child: ChildProcessWithoutNullStreams | null;
     private arguments = [
         "--inspect-brk",
         "--max-old-space-size=1024",
@@ -17,24 +17,44 @@ export default class Subprocess {
     ];
     public root: string;
 
-    constructor({ src, onData, onExit, onError }: SubprocessInitParams) {
+    static #instance: Subprocess | null;
+    static instance(params: SubprocessInitParams) {
+        if (!Subprocess.#instance) {
+            Subprocess.#instance = new Subprocess(params);
+        }
+
+        return Subprocess.#instance;
+    }
+    private constructor({
+        src,
+        onData,
+        onExit,
+        onError,
+    }: SubprocessInitParams) {
         this.root = src;
-        this.instance = spawn("node", [
+        this.child = spawn("node", [
             ...this.arguments,
             path.normalize(this.root),
         ]);
 
-        this.instance.stdout.on("data", onData);
-        this.instance.stderr.on("data", onError);
-        this.instance.on("exit", onExit);
+        this.child.stdout.on("data", onData);
+        this.child.stderr.on("data", onError);
+        this.child.on("exit", onExit);
     }
 
-    public isRunning(): boolean {
-        return !this.instance?.killed && this.instance?.exitCode === null;
+    static isRunning(): boolean {
+        return (
+            !Subprocess.#instance?.child?.killed &&
+            Subprocess.#instance?.child?.exitCode === null
+        );
     }
 
-    public kill() {
-        if (this.instance != null) this.instance.kill();
-        this.instance = null;
+    static kill(): void {
+        if (Subprocess.#instance?.child?.kill()) {
+            Subprocess.#instance = null;
+            console.log("Subprocess killed successfully");
+        } else {
+            console.log("Failed to kill subprocess");
+        }
     }
 }
