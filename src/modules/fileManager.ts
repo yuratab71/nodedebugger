@@ -2,9 +2,17 @@ import fs from "node:fs";
 import path from "path";
 import { PackageJson, TsConfigJson } from "type-fest";
 
+type Entry = {
+    path: string;
+    name: string;
+    isDir: boolean;
+    extension: string;
+};
+
 export class FileManager {
     // directory of subprocess, where code is located
     dir: string;
+    fileStructure: Entry[];
 
     // main file which is executable, i.g. "main.js"
     main: string;
@@ -21,19 +29,32 @@ export class FileManager {
         return FileManager.#instance;
     }
 
+    private resolveDirectoryFiles(dir: string) {
+        const entries = fs.readdirSync(dir);
+        const result: Entry[] = [];
+        entries.forEach((entry: string) => {
+            const stats = fs.statSync(path.join(dir, entry));
+            result.push({
+                name: entry,
+                path: path.join(dir, entry),
+                isDir: stats.isDirectory(),
+                extension: path.extname(entry),
+            });
+        });
+
+        return result;
+    }
     private constructor(src: string) {
         this.dir = src;
-
+        this.fileStructure = this.resolveDirectoryFiles(src);
+        console.log(this.fileStructure);
         this.main = "test";
-
         this.subprocessPackageJson = JSON.parse(
             fs.readFileSync(path.join(this.dir, "package.json"), "utf-8"),
         );
         this.subprocessTsConfig = JSON.parse(
             fs.readFileSync(path.join(this.dir, "tsconfig.json"), "utf-8"),
         );
-
-        console.log(this.subprocessPackageJson);
     }
 
     getPathToMain(): string {
