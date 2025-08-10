@@ -1,7 +1,8 @@
 import React, { JSX } from "react";
 import styled from "styled-components";
 import { Status } from "../../../constants/status";
-
+import { Button } from "../common/button";
+import { FilePickerUIComponent } from "../common/filePicker";
 const NavbarWrapper = styled.div`
     display: flex;
     height: 80px;
@@ -14,8 +15,8 @@ const MainLogo = styled.div`
     font-weight: bold;
     border-style: solid;
     border-color: red;
-text-align: center;
-margin: 0 auto;
+    text-align: center;
+    margin: 0 auto;
 `;
 
 const NavbarMenuBlock = styled.div`
@@ -39,12 +40,39 @@ const navbarElement: React.CSSProperties = {
 export const NavbarUIComponent: React.FC<NavbarUIComponentProps> = ({
     status,
 }): JSX.Element => {
+    const handleStart = () => {
+        window.electronAPI.startProcess();
+    };
+
+    const handleKill = () => {
+        window.electronAPI.terminateProcess();
+    };
+
+    const connectToDebuggingServer = () => {
+        window.electronAPI.connectWebSocket();
+    };
+
+    const resumeExecution = () => {
+        window.electronAPI.resumeExecution();
+    };
+
     return (
         <NavbarWrapper>
-            <MainLogo>
-                Nquisitor
-            </MainLogo>
+            <MainLogo>Nquisitor</MainLogo>
             <NavbarMenuBlock>
+                <FilePickerUIComponent />
+                <Button text={"Start Subprocess"} onClick={handleStart} />
+                <Button text={"Terminate Subprocess"} onClick={handleKill} />
+                <Button
+                    text={"Connect debugger"}
+                    onClick={connectToDebuggingServer}
+                />
+                <Button
+                    text={"Resume"}
+                    onClick={resumeExecution}
+                    disabled={status != "connected"}
+                />
+
                 <div style={navbarElement}>{status}</div>
             </NavbarMenuBlock>
         </NavbarWrapper>

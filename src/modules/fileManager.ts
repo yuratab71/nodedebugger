@@ -19,7 +19,7 @@ export class FileManager {
     subprocessPackageJson: PackageJson;
     subprocessTsConfig: TsConfigJson;
 
-    static #instance: FileManager;
+    static #instance: FileManager | null;
 
     static instance(src: string): FileManager {
         if (!FileManager.#instance) {
@@ -27,6 +27,10 @@ export class FileManager {
         }
 
         return FileManager.#instance;
+    }
+
+    static removeInstance(): void {
+        FileManager.#instance = null;
     }
 
     private resolveDirectoryFiles(dir: string) {
@@ -48,7 +52,7 @@ export class FileManager {
         this.dir = src;
         this.fileStructure = this.resolveDirectoryFiles(src);
         console.log(this.fileStructure);
-        this.main = "test";
+        this.main = path.join(src, "dist/main.js");
         this.subprocessPackageJson = JSON.parse(
             fs.readFileSync(path.join(this.dir, "package.json"), "utf-8"),
         );

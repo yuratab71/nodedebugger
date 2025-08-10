@@ -121,6 +121,7 @@ ipcMain.on(SET_DIRECTORY, async () => {
         result.filePaths.length > 0 &&
         result.filePaths[0]
     ) {
+        FileManager.removeInstance();
         fileManager = FileManager.instance(result.filePaths[0]);
         return;
     }
@@ -202,6 +203,6 @@ ipcMain.on(SET_WS_STATUS, (_: IpcMainEvent, status: string) => {
 });
 
 ipcMain.on(RESUME_EXECUTION, () => {
-    console.log(RESUME_EXECUTION);
+    runtimeDomain.enable(messageId++);
     runtimeDomain.runIfWaitingForDebugger(messageId++);
 });
