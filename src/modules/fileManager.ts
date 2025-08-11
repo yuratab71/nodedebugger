@@ -50,7 +50,6 @@ export class FileManager {
     }
     private constructor(src: string) {
         this.dir = src;
-        console.log("SRC: " + this.dir);
         this.subprocessPackageJson = JSON.parse(
             fs.readFileSync(path.join(this.dir, "package.json"), "utf-8"),
         );
@@ -59,8 +58,6 @@ export class FileManager {
         );
         this.srcFileStructure = this.resolveDirectoryFiles(src);
         this.main = path.join(this.dir, this.resolveMain());
-
-        console.log("MAIN FILE: " + this.main);
     }
 
     getPathToMain(): string | null {
@@ -70,8 +67,6 @@ export class FileManager {
     private resolveMain(): string {
         // TODO add another conditions
         let result = "";
-        console.log(this.subprocessPackageJson);
-        console.log(this.subprocessTsConfig);
         if (this.subprocessTsConfig?.compilerOptions?.outDir) {
             result += this.subprocessTsConfig?.compilerOptions?.outDir;
         }

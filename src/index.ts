@@ -11,7 +11,7 @@ import {
     TERMINATE_SUBPROCESS,
 } from "./constants/commands";
 import { Status } from "./constants/status";
-// import { DebuggerDomain } from "./domains/debugger";
+import { DebuggerDomain } from "./domains/debugger";
 import { RuntimeDomain } from "./domains/runtime";
 import { DebuggingResponse, MEMORY_USAGE_ID } from "./modules/debugger";
 import { FileManager } from "./modules/fileManager";
@@ -27,7 +27,7 @@ declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
 // eslint-disable-next-line
 let ws: WS;
 let runtimeDomain: RuntimeDomain;
-// let debuggerDomain: DebuggerDomain;
+let debuggerDomain: DebuggerDomain;
 
 let fileManager: FileManager;
 let subprocess: Subprocess;
@@ -183,7 +183,7 @@ const onConnectToDebugger = (connectionString: string) => {
             onMessageCallback: processWebSocketMessage,
         });
         runtimeDomain = new RuntimeDomain(ws);
-        // debuggerDomain = new DebuggerDomain(ws);
+        debuggerDomain = new DebuggerDomain(ws);
     } else {
         mainWindow.webContents.send(
             PROCESS_LOG,
@@ -209,5 +209,6 @@ ipcMain.on(SET_WS_STATUS, (_: IpcMainEvent, status: string) => {
 
 ipcMain.on(RESUME_EXECUTION, () => {
     runtimeDomain.enable(messageId++);
+    debuggerDomain.enable(messageId++);
     runtimeDomain.runIfWaitingForDebugger(messageId++);
 });
