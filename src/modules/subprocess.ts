@@ -1,8 +1,7 @@
 import { spawn, ChildProcessWithoutNullStreams } from "node:child_process";
-import path from "path";
 
 type SubprocessInitParams = {
-    src: string;
+    entry: string;
     onData: (data: any) => void;
     onError: (data: any) => void;
     onExit: (code: number, signal: NodeJS.Signals) => void;
@@ -15,7 +14,7 @@ export default class Subprocess {
         "--max-old-space-size=1024",
         "--trace-gc",
     ];
-    public root: string;
+    public entry: string;
 
     static #instance: Subprocess | null;
     static instance(params: SubprocessInitParams) {
@@ -26,16 +25,13 @@ export default class Subprocess {
         return Subprocess.#instance;
     }
     private constructor({
-        src,
+        entry,
         onData,
         onExit,
         onError,
     }: SubprocessInitParams) {
-        this.root = src;
-        this.child = spawn("node", [
-            ...this.arguments,
-            path.normalize(this.root),
-        ]);
+        this.entry = entry;
+        this.child = spawn("node", [...this.arguments, this.entry]);
 
         this.child.stdout.on("data", onData);
         this.child.stderr.on("data", onError);

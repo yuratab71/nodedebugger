@@ -137,8 +137,13 @@ ipcMain.on(START_SUBPROCESS, () => {
         );
         return;
     }
+    let mainPath = fileManager.getPathToMain();
+    if (!mainPath) {
+        // TODO just a hardcode
+        mainPath = "C:\Users\ASUS\Desktop\nest_app\dist";
+    }
     subprocess = Subprocess.instance({
-        src: path.normalize(fileManager.getPathToMain()),
+        entry: path.normalize(mainPath),
         onData: subprocessOnData,
         onError: subprocessOnErrror,
         onExit: subprocessOnExit,
@@ -147,7 +152,7 @@ ipcMain.on(START_SUBPROCESS, () => {
     mainWindow.webContents.send(
         PROCESS_LOG,
         passMessage(
-            `starting and external process with src: ${subprocess.root}`,
+            `starting and external process with entry: ${subprocess.entry}`,
         ),
     );
 });

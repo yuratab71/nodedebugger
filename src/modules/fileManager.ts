@@ -12,10 +12,10 @@ type Entry = {
 export class FileManager {
     // directory of subprocess, where code is located
     dir: string;
-    fileStructure: Entry[];
+    srcFileStructure: Entry[];
 
     // main file which is executable, i.g. "main.js"
-    main: string;
+    main: string | null;
     subprocessPackageJson: PackageJson;
     subprocessTsConfig: TsConfigJson;
 
@@ -50,41 +50,38 @@ export class FileManager {
     }
     private constructor(src: string) {
         this.dir = src;
-        this.fileStructure = this.resolveDirectoryFiles(src);
-        console.log(this.fileStructure);
-        this.main = path.join(src, "dist/main.js");
+        console.log("SRC: " + this.dir);
         this.subprocessPackageJson = JSON.parse(
             fs.readFileSync(path.join(this.dir, "package.json"), "utf-8"),
         );
         this.subprocessTsConfig = JSON.parse(
             fs.readFileSync(path.join(this.dir, "tsconfig.json"), "utf-8"),
         );
+        this.srcFileStructure = this.resolveDirectoryFiles(src);
+        this.main = path.join(this.dir, this.resolveMain());
+
+        console.log("MAIN FILE: " + this.main);
     }
 
-    getPathToMain(): string {
+    getPathToMain(): string | null {
         return this.main;
     }
 
-    resolveMain(): string | undefined {
+    private resolveMain(): string {
         // TODO add another conditions
-        if (this.subprocessPackageJson?.main != undefined) {
-            this.main = this.subprocessPackageJson?.main;
-            console.log(`FileManager: ${this.main}`);
-            return this.main;
-        }
-
+        let result = "";
+        console.log(this.subprocessPackageJson);
+        console.log(this.subprocessTsConfig);
         if (this.subprocessTsConfig?.compilerOptions?.outDir) {
-            console.log("FileManager: outdir");
-            this.main = path.join(
-                this.dir,
-                this.subprocessTsConfig?.compilerOptions?.outDir,
-                "main.js",
-            );
-
-            return this.main;
+            result += this.subprocessTsConfig?.compilerOptions?.outDir;
+        }
+        if (this.subprocessPackageJson?.main != undefined) {
+            result += path.join(this.subprocessPackageJson?.main);
+            return result;
         }
 
         //TODO add another checks
-        return undefined;
+        console.log("Resolved Main " + result);
+        return path.join(result, "main");
     }
 }

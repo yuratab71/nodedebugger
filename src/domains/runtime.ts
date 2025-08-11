@@ -10,7 +10,7 @@ export class RuntimeDomain {
     private ENABLE: string = "Runtime.enable";
     private EVALUATE: string = "Runtime.evaluate";
     private RUN_IF_WAITING_FOR_DEBUGGER = "Runtime.runIfWaitingForDebugger";
-    private DEBUGGER_RESUME = "Debugger.resume";
+    //    private DEBUGGER_RESUME = "Debugger.resume";
 
     constructor(socket: WS) {
         this.ws = socket;
