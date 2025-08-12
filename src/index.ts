@@ -20,6 +20,7 @@ import Subprocess from "./modules/subprocess";
 import { WS } from "./modules/wsdbserver";
 
 let detectedUrl = "";
+let platform: NodeJS.Platform;
 
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
 declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
@@ -46,6 +47,8 @@ const sendStatus = (st: Status) => {
 };
 
 const createWindow = (): void => {
+    platform = process.platform;
+    console.log(`Starting Nquisitor on: ${platform}`);
     mainWindow = new BrowserWindow({
         height: 760,
         width: 1024,
