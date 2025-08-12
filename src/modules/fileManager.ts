@@ -76,7 +76,6 @@ export class FileManager {
         }
 
         //TODO add another checks
-        console.log("Resolved Main " + result);
-        return path.join(result, "main");
+        return path.join(result, "main.js");
     }
 }

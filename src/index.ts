@@ -47,8 +47,8 @@ const sendStatus = (st: Status) => {
 
 const createWindow = (): void => {
     mainWindow = new BrowserWindow({
-        height: 600,
-        width: 800,
+        height: 760,
+        width: 1024,
         webPreferences: {
             preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
         },
@@ -68,6 +68,7 @@ const createWindow = (): void => {
 app.on("ready", createWindow);
 
 app.on("window-all-closed", () => {
+    Subprocess.kill();
     if (process.platform !== "darwin") {
         app.quit();
     }
@@ -87,6 +88,7 @@ const processWebSocketMessage = (message: DebuggingResponse) => {
 };
 
 const subprocessOnData = (data: any) => {
+    console.log(data.toString());
     mainWindow.webContents.send(PROCESS_LOG, data.toString());
 };
 
@@ -105,6 +107,7 @@ const subprocessOnErrror = (data: any) => {
 };
 
 const subprocessOnExit = (code: number, signal: NodeJS.Signals) => {
+    console.log(`Process exit code ${code} and signal ${signal}`);
     mainWindow.webContents.send(
         PROCESS_LOG,
         passMessage(`Process exited with code ${code} and signal:${signal}`),
@@ -208,7 +211,5 @@ ipcMain.on(SET_WS_STATUS, (_: IpcMainEvent, status: string) => {
 });
 
 ipcMain.on(RESUME_EXECUTION, () => {
-    runtimeDomain.enable(messageId++);
-    debuggerDomain.enable(messageId++);
     runtimeDomain.runIfWaitingForDebugger(messageId++);
 });
