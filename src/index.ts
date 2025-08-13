@@ -1,7 +1,16 @@
-import { app, BrowserWindow, dialog, ipcMain, IpcMainEvent } from "electron";
+import {
+    app,
+    BrowserWindow,
+    dialog,
+    ipcMain,
+    IpcMainEvent,
+    IpcMainInvokeEvent,
+} from "electron";
 import path from "path";
 import {
     CONNECT_TO_DEBUGGER,
+    GET_FILE_CONTENT,
+    GET_FILE_STRUCTURE,
     PROCESS_LOG,
     RESUME_EXECUTION,
     SET_DIRECTORY,
@@ -14,7 +23,7 @@ import { Status } from "./constants/status";
 import { DebuggerDomain } from "./domains/debugger";
 import { RuntimeDomain } from "./domains/runtime";
 import { DebuggingResponse, MEMORY_USAGE_ID } from "./modules/debugger";
-import { FileManager } from "./modules/fileManager";
+import { Entry, FileManager } from "./modules/fileManager";
 import { passMessage } from "./modules/logger";
 import Subprocess from "./modules/subprocess";
 import { WS } from "./modules/wsdbserver";
@@ -128,7 +137,12 @@ ipcMain.on(SET_DIRECTORY, async () => {
         result.filePaths[0]
     ) {
         FileManager.removeInstance();
-        fileManager = FileManager.instance(result.filePaths[0]);
+        fileManager = FileManager.instance({
+            src: result.filePaths[0],
+            onFileStructureResolveCallback: (files: Entry[]) => {
+                mainWindow.webContents.send(GET_FILE_STRUCTURE, files);
+            },
+        });
         return;
     }
 
@@ -215,4 +229,10 @@ ipcMain.on(SET_WS_STATUS, (_: IpcMainEvent, status: string) => {
 
 ipcMain.on(RESUME_EXECUTION, () => {
     runtimeDomain.runIfWaitingForDebugger(messageId++);
+});
+
+ipcMain.handle(GET_FILE_CONTENT, async (_: IpcMainInvokeEvent, src: string) => {
+    if (fileManager?.main) return fileManager.readFile(src);
+
+    return "";
 });

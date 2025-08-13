@@ -1,12 +1,18 @@
 import fs from "node:fs";
+import { readFileSync } from "original-fs";
 import path from "path";
 import { PackageJson, TsConfigJson } from "type-fest";
 
-type Entry = {
+export type Entry = {
     path: string;
     name: string;
     isDir: boolean;
     extension: string;
+};
+
+export type FileManagerInitParams = {
+    src: string;
+    onFileStructureResolveCallback: (files: Entry[]) => void;
 };
 
 export class FileManager {
@@ -19,11 +25,13 @@ export class FileManager {
     subprocessPackageJson: PackageJson;
     subprocessTsConfig: TsConfigJson;
 
+    onFilePathResolveCallback: (files: Entry[]) => void;
+
     static #instance: FileManager | null;
 
-    static instance(src: string): FileManager {
+    static instance(params: FileManagerInitParams): FileManager {
         if (!FileManager.#instance) {
-            FileManager.#instance = new FileManager(src);
+            FileManager.#instance = new FileManager(params);
         }
 
         return FileManager.#instance;
@@ -46,10 +54,15 @@ export class FileManager {
             });
         });
 
+        this.onFilePathResolveCallback(result);
         return result;
     }
-    private constructor(src: string) {
+    private constructor({
+        src,
+        onFileStructureResolveCallback,
+    }: FileManagerInitParams) {
         this.dir = src;
+        this.onFilePathResolveCallback = onFileStructureResolveCallback;
         this.subprocessPackageJson = JSON.parse(
             fs.readFileSync(path.join(this.dir, "package.json"), "utf-8"),
         );
@@ -77,5 +90,12 @@ export class FileManager {
 
         //TODO add another checks
         return path.join(result, "main.js");
+    }
+
+    readFile(src: fs.PathLike) {
+        const isFile = fs.lstatSync(src).isFile();
+        if (isFile) return readFileSync(src, { encoding: "utf8" });
+
+        return "Not a file, maybe a floder\n";
     }
 }

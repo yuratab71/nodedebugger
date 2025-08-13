@@ -8,8 +8,11 @@ import {
     START_SUBPROCESS,
     TERMINATE_SUBPROCESS,
     SET_DIRECTORY,
+    GET_FILE_STRUCTURE,
+    GET_FILE_CONTENT,
 } from "./constants/commands";
 import { DebuggingResponse } from "./modules/debugger";
+import { Entry } from "./modules/fileManager";
 
 const Window: Pick<Window, "electronAPI"> = {
     electronAPI: {
@@ -26,6 +29,10 @@ const Window: Pick<Window, "electronAPI"> = {
         },
         onProcessLog: (callback: (msg: string) => void) =>
             ipcRenderer.on(PROCESS_LOG, (_, msg) => callback(msg)),
+        getFileStructure: (callback: (files: Entry[]) => void) =>
+            ipcRenderer.on(GET_FILE_STRUCTURE, (_, files) => callback(files)),
+        getFileContent: (src: string) =>
+            ipcRenderer.invoke(GET_FILE_CONTENT, src),
     },
 };
 

@@ -6,3 +6,5 @@ export const SET_WS_STATUS = "set_ws_status";
 export const RESUME_EXECUTION = "resume_execution";
 export const SET_MEMORY_USAGE = "set_memory_usage";
 export const SET_DIRECTORY = "set_directory";
+export const GET_FILE_STRUCTURE = "get_file_structure";
+export const GET_FILE_CONTENT = "get_file_content";
