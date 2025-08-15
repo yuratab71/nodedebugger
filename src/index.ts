@@ -27,8 +27,10 @@ import { Entry, FileManager } from "./modules/fileManager";
 import { passMessage } from "./modules/logger";
 import Subprocess from "./modules/subprocess";
 import { WS } from "./modules/wsdbserver";
+import { detectConnectionString } from "./utils/connmatch";
 
 let detectedUrl = "";
+let shouldDetectUrl = true;
 let platform: NodeJS.Platform;
 
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
@@ -106,14 +108,13 @@ const subprocessOnData = (data: any) => {
 
 const subprocessOnErrror = (data: any) => {
     const str = data.toString();
+    if (shouldDetectUrl) {
+        const url = detectConnectionString(str);
+        if (url) {
+            detectedUrl = url;
+        }
 
-    const match = str.match(
-        /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}/,
-    );
-
-    if (match) {
-        detectedUrl = `ws://127.0.0.1:9229/${match[0]}`;
-        console.log(`Connection string is ws://127.0.0.1:9229/${match[0]}`);
+        shouldDetectUrl = !shouldDetectUrl;
     }
     mainWindow.webContents.send(PROCESS_LOG, `ERROR: ${data.toString()}`);
 };
