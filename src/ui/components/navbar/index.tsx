@@ -5,18 +5,35 @@ import { Button } from "../common/button";
 import { FilePickerUIComponent } from "../common/filePicker";
 const NavbarWrapper = styled.div`
     display: flex;
-    height: 80px;
+    min-height: 80px;
     flex-direction: row;
 `;
 
-const MainLogo = styled.div`
+const Info = styled.div`
     font-size: 16;
     width: 20%;
+    border-style: solid;
+    border-color: red;
+    text-align: left;
+    padding: 2px;
+    margin: 0 auto;
+`;
+
+const Logo = styled.div`
+    margin: 0;
     font-weight: bold;
     border-style: solid;
     border-color: red;
-    text-align: center;
-    margin: 0 auto;
+`;
+
+const InfoBlock = styled.div`
+    border-style: solid;
+    border-color: red;
+`;
+
+const InfoSection = styled.p`
+    margin: 0;
+    font-size: 12px;
 `;
 
 const NavbarMenuBlock = styled.div`
@@ -31,14 +48,26 @@ const NavbarMenuBlock = styled.div`
 
 export type NavbarUIComponentProps = {
     status: Status;
+    rss: number | undefined;
+    heapTotal: number | undefined;
+    heapUsed: number | undefined;
+    external: number | undefined;
 };
 
 const navbarElement: React.CSSProperties = {
     width: "20px",
 };
 
+const formatMemory = (mem: number): string => {
+    return (mem / 1024 / 1024).toFixed(2);
+};
+
 export const NavbarUIComponent: React.FC<NavbarUIComponentProps> = ({
     status,
+    rss,
+    heapTotal,
+    heapUsed,
+    external,
 }): JSX.Element => {
     const handleStart = () => {
         window.electronAPI.startProcess();
@@ -58,7 +87,36 @@ export const NavbarUIComponent: React.FC<NavbarUIComponentProps> = ({
 
     return (
         <NavbarWrapper>
-            <MainLogo>Nquisitor</MainLogo>
+            <Info>
+                <Logo>Nquisitor</Logo>
+                <InfoBlock>
+                    <InfoSection>Status: {status}</InfoSection>
+                    {status === Status.CONNECTED ? (
+                        <>
+                            {rss ? (
+                                <InfoSection>
+                                    RSS: {formatMemory(rss)}
+                                </InfoSection>
+                            ) : null}
+                            {heapTotal ? (
+                                <InfoSection>
+                                    heapTotal: {formatMemory(heapTotal)}
+                                </InfoSection>
+                            ) : null}
+                            {heapUsed ? (
+                                <InfoSection>
+                                    heapUsed: {formatMemory(heapUsed)}
+                                </InfoSection>
+                            ) : null}
+                            {external ? (
+                                <InfoSection>
+                                    external: {formatMemory(external)}
+                                </InfoSection>
+                            ) : null}
+                        </>
+                    ) : undefined}
+                </InfoBlock>
+            </Info>
             <NavbarMenuBlock>
                 <FilePickerUIComponent />
                 <Button text={"Start Subprocess"} onClick={handleStart} />

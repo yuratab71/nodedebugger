@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { Entry } from "../modules/fileManager";
 import { Status } from "../constants/status";
 import { MemoryValue } from "../modules/debugger";
-import { MemoryUsageUIComponent } from "./components/memoryUsage";
 import { NavbarUIComponent } from "./components/navbar";
 import { CodeVisualizerUIComponent } from "./components/codeVisualizer";
 import styled from "styled-components";
@@ -40,7 +39,13 @@ export default function Main() {
     return (
         <AppWrapper>
             <div>
-                <NavbarUIComponent status={wsStatus} />
+                <NavbarUIComponent
+                    status={wsStatus}
+                    rss={memoryUsage?.rss}
+                    heapTotal={memoryUsage?.heapTotal}
+                    heapUsed={memoryUsage?.heapUsed}
+                    external={memoryUsage?.external}
+                />
                 <div>
                     <CodeVisualizerUIComponent files={fileStructure} />
                 </div>
@@ -56,15 +61,6 @@ export default function Main() {
                     {logs.join("\n")}
                 </pre>
             </div>
-            {memoryUsage && (
-                <MemoryUsageUIComponent
-                    isConnected={wsStatus === "connected"}
-                    rss={memoryUsage.rss}
-                    heapTotal={memoryUsage.heapTotal}
-                    heapUsed={memoryUsage.heapUsed}
-                    external={memoryUsage.external}
-                />
-            )}
         </AppWrapper>
     );
 }
