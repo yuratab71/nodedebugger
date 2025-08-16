@@ -19,12 +19,13 @@ import {
     START_SUBPROCESS,
     TERMINATE_SUBPROCESS,
 } from "./constants/commands";
+import { Ids } from "./constants/debuggerMessageIds";
 import { Status } from "./constants/status";
 import { DebuggerDomain } from "./domains/debugger";
 import { RuntimeDomain } from "./domains/runtime";
-import { DebuggingResponse, MEMORY_USAGE_ID } from "./modules/debugger";
+import { DebuggingResponse } from "./modules/debugger";
 import { Entry, FileManager } from "./modules/fileManager";
-import { passMessage } from "./modules/logger";
+import { Logger, passMessage } from "./modules/logger";
 import Subprocess from "./modules/subprocess";
 import { WS } from "./modules/wsdbserver";
 import { detectConnectionString } from "./utils/connmatch";
@@ -44,8 +45,8 @@ let debuggerDomain: DebuggerDomain;
 let fileManager: FileManager;
 let subprocess: Subprocess;
 let status: Status = Status.NOT_ACTIVE;
-let messageId = 4;
 
+const logger = new Logger("IPC MAIN");
 let mainWindow: BrowserWindow;
 
 if (require("electron-squirrel-startup")) {
@@ -59,7 +60,7 @@ const sendStatus = (st: Status) => {
 
 const createWindow = (): void => {
     platform = process.platform;
-    console.log(`Starting Nquisitor on: ${platform}`);
+    logger.log(`Starting Nquisitor on: ${platform}`);
     mainWindow = new BrowserWindow({
         height: 760,
         width: 1024,
@@ -72,9 +73,17 @@ const createWindow = (): void => {
 
     sendStatus(Status.NOT_ACTIVE);
 
+    // prevent subprocess to continue execution
+    process.on("SIGINT", () => {
+        logger.log("received SIGINT signal");
+        Subprocess.kill();
+        process.exit(0);
+    });
+
     setInterval(() => {
         if (WS.isConnected() && !!runtimeDomain) {
-            runtimeDomain.getMemoryUsage(MEMORY_USAGE_ID);
+            logger.log("getting memory usage");
+            runtimeDomain.getMemoryUsage(Ids.RUNTIME.GET_MEMORY_USAGE);
         }
     }, 2000);
 };
@@ -96,13 +105,13 @@ app.on("activate", () => {
 
 const processWebSocketMessage = (message: DebuggingResponse) => {
     switch (message.id) {
-        case MEMORY_USAGE_ID:
+        case Ids.RUNTIME.GET_MEMORY_USAGE:
             mainWindow.webContents.send(SET_MEMORY_USAGE, message);
     }
 };
 
 const subprocessOnData = (data: any) => {
-    console.log(data.toString());
+    logger.log("Received data from subprocess:\n" + data.toString());
     mainWindow.webContents.send(PROCESS_LOG, data.toString());
 };
 
@@ -120,7 +129,7 @@ const subprocessOnErrror = (data: any) => {
 };
 
 const subprocessOnExit = (code: number, signal: NodeJS.Signals) => {
-    console.log(`Process exit code ${code} and signal ${signal}`);
+    logger.log(`Process exit code ${code} and signal ${signal}`);
     mainWindow.webContents.send(
         PROCESS_LOG,
         passMessage(`Process exited with code ${code} and signal:${signal}`),
@@ -147,7 +156,7 @@ ipcMain.on(SET_DIRECTORY, async () => {
         return;
     }
 
-    console.log("Unable to locate directory");
+    logger.log("Unable to detect directory");
 });
 
 ipcMain.on(START_SUBPROCESS, () => {
@@ -229,7 +238,9 @@ ipcMain.on(SET_WS_STATUS, (_: IpcMainEvent, status: string) => {
 });
 
 ipcMain.on(RESUME_EXECUTION, () => {
-    runtimeDomain.runIfWaitingForDebugger(messageId++);
+    runtimeDomain.runIfWaitingForDebugger(
+        Ids.RUNTIME.RUN_IF_WAITING_FOR_DEBUGGER,
+    );
 });
 
 ipcMain.handle(GET_FILE_CONTENT, async (_: IpcMainInvokeEvent, src: string) => {

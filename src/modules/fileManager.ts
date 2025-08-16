@@ -2,6 +2,7 @@ import fs from "node:fs";
 import { readFileSync } from "original-fs";
 import path from "path";
 import { PackageJson, TsConfigJson } from "type-fest";
+import { Logger } from "./logger";
 
 export type Entry = {
     path: string;
@@ -24,6 +25,8 @@ export class FileManager {
     main: string | null;
     subprocessPackageJson: PackageJson;
     subprocessTsConfig: TsConfigJson;
+
+    private logger: Logger;
 
     onFilePathResolveCallback: (files: Entry[]) => void;
 
@@ -55,12 +58,14 @@ export class FileManager {
         });
 
         this.onFilePathResolveCallback(result);
+        this.logger.log("directory files resolved");
         return result;
     }
     private constructor({
         src,
         onFileStructureResolveCallback,
     }: FileManagerInitParams) {
+        this.logger = new Logger("FILE MANAGER");
         this.dir = src;
         this.onFilePathResolveCallback = onFileStructureResolveCallback;
         this.subprocessPackageJson = JSON.parse(

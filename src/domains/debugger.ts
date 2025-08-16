@@ -1,8 +1,9 @@
 import { WS } from "../modules/wsdbserver";
 
 export class DebuggerDomain {
-    readonly ws: WS;
-    readonly ENABLE: string = "Debugger.enable";
+    private readonly ws: WS;
+    private ENABLE: string = "Debugger.enable";
+    private GET_SCRIPT_SOURCE = "Debugger.getScriptSource";
 
     constructor(socket: WS) {
         this.ws = socket;
@@ -17,5 +18,9 @@ export class DebuggerDomain {
 
     enable(id: number): void {
         this.ws.send(this.getMsg(id, this.ENABLE));
+    }
+
+    getScriptSource(id: number): void {
+        this.ws.send(this.getMsg(id, this.GET_SCRIPT_SOURCE));
     }
 }
