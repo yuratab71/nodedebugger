@@ -19,6 +19,7 @@ import {
     START_SUBPROCESS,
     TERMINATE_SUBPROCESS,
 } from "./constants/commands";
+import { MEMORY_USAGE_UPDATE_DELAY } from "./constants/debugger";
 import { Ids } from "./constants/debuggerMessageIds";
 import { Status } from "./constants/status";
 import { DebuggerDomain } from "./domains/debugger";
@@ -85,7 +86,7 @@ const createWindow = (): void => {
             logger.log("getting memory usage");
             runtimeDomain.getMemoryUsage(Ids.RUNTIME.GET_MEMORY_USAGE);
         }
-    }, 2000);
+    }, MEMORY_USAGE_UPDATE_DELAY);
 };
 
 app.on("ready", createWindow);
