@@ -11,32 +11,57 @@ const CodeVisualizerWrapper = styled.div`
 `;
 
 export type CodeVisualizerUIComponentProps = {
-    files: Entry[];
+    rootDir: string;
 };
 
 export const CodeVisualizerUIComponent: React.FC<
     CodeVisualizerUIComponentProps
-> = ({ files }: CodeVisualizerUIComponentProps): JSX.Element => {
+> = ({ rootDir }: CodeVisualizerUIComponentProps): JSX.Element => {
+    const [currentDir, setCurrentDir] = useState<string>(rootDir);
+    const [fileStructure, setFileStructure] = useState<Entry[]>([]);
     const [fileContent, setFileContent] = useState<string>("");
+
     useEffect(() => {
         try {
-            const receivedContent = window.electronAPI.getFileContent("");
-            receivedContent.then((data) => {
-                setFileContent(data);
+            window.electronAPI.onFileStructureResolve((files) => {
+                setFileStructure(files);
             });
         } catch (e) {
             console.log(e);
         }
     }, []);
-    const handleClick = (src: string) => {
+    const handleClick = (entry: Entry) => {
+        if (!entry.isDir) {
+            window.electronAPI
+                .getFileContent(entry.path)
+                .then((data) => setFileContent(data));
+            return;
+        }
+
+        setCurrentDir(entry.path);
         window.electronAPI
-            .getFileContent(src)
-            .then((data) => setFileContent(data));
+            .getFileStructure(entry.path)
+            .then((files) => setFileStructure(files));
+        return;
+    };
+
+    const onStepOutCallback = () => {
+        const locParsed = currentDir.split("\\");
+        locParsed.pop();
+        const dest = locParsed.join("\\");
+        setCurrentDir(dest);
+        window.electronAPI
+            .getFileStructure(dest)
+            .then((files) => setFileStructure(files));
+        return;
     };
     return (
         <CodeVisualizerWrapper>
             <FileExplorerUIComponent
-                files={files}
+                dir={currentDir ? currentDir : rootDir}
+                canStepOutOfDir={currentDir != "" && currentDir != rootDir}
+                onStepOutOfDirCallback={onStepOutCallback}
+                files={fileStructure}
                 onClickCallback={handleClick}
             />
             <CodeViewerUIComponent text={fileContent} />

@@ -10,6 +10,13 @@ import {
     SET_DIRECTORY,
     GET_FILE_STRUCTURE,
     GET_FILE_CONTENT,
+    GET_SCRIPT_SOURCE,
+    DEBUGGER_ENABLE,
+    SET_BREAKPOINT_BY_URL,
+    SET_BREAKPOINT,
+    GET_ROOT_DIR,
+    ON_ROOT_DIR_RESOLVE,
+    ON_FILE_STRUCTURE_RESOLVE,
 } from "./constants/commands";
 import { DebuggingResponse } from "./modules/debugger";
 import { Entry } from "./modules/fileManager";
@@ -20,6 +27,10 @@ const Window: Pick<Window, "electronAPI"> = {
         terminateProcess: () => ipcRenderer.send(TERMINATE_SUBPROCESS),
         connectWebSocket: () => ipcRenderer.send(CONNECT_TO_DEBUGGER),
         resumeExecution: () => ipcRenderer.send(RESUME_EXECUTION),
+        getScriptSource: () => ipcRenderer.send(GET_SCRIPT_SOURCE),
+        enableDebugger: () => ipcRenderer.send(DEBUGGER_ENABLE),
+        setBreakpoint: () => ipcRenderer.send(SET_BREAKPOINT),
+        setBreakpointByUrl: () => ipcRenderer.send(SET_BREAKPOINT_BY_URL),
         setWsStatus: (callback: (status: string) => void) => {
             ipcRenderer.on(SET_WS_STATUS, (_, status) => callback(status));
         },
@@ -29,10 +40,21 @@ const Window: Pick<Window, "electronAPI"> = {
         },
         onProcessLog: (callback: (msg: string) => void) =>
             ipcRenderer.on(PROCESS_LOG, (_, msg) => callback(msg)),
-        getFileStructure: (callback: (files: Entry[]) => void) =>
-            ipcRenderer.on(GET_FILE_STRUCTURE, (_, files) => callback(files)),
+        onRootDirResolve: (callback: (rootDir: string) => void) =>
+            ipcRenderer.on(ON_ROOT_DIR_RESOLVE, (_, rootDir) =>
+                callback(rootDir),
+            ),
+        onFileStructureResolve: (callback: (files: Entry[]) => void) =>
+            ipcRenderer.on(ON_FILE_STRUCTURE_RESOLVE, (_, files) =>
+                callback(files),
+            ),
+
+        getFileStructure: (src: string) =>
+            ipcRenderer.invoke(GET_FILE_STRUCTURE, src),
         getFileContent: (src: string) =>
             ipcRenderer.invoke(GET_FILE_CONTENT, src),
+        getRootDir: (callback: (rootDir: string) => void) =>
+            ipcRenderer.on(GET_ROOT_DIR, (_, rootDir) => callback(rootDir)),
     },
 };
 

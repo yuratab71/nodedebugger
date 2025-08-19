@@ -1,3 +1,5 @@
+// TODO remove this file, move types to another place
+
 export type MemoryValue = {
     rss: number;
     heapTotal: number;
@@ -5,14 +7,31 @@ export type MemoryValue = {
     external: number;
 };
 
+export type CallFrames = {
+    callFrameId: string;
+    functionName: string;
+    functionLocation: any;
+    location: any;
+    url: string;
+    scopeChain: any[];
+    this: any;
+    canBeRestarted: true;
+};
+
 export type DebuggingResponse = {
-    id: number;
+    id?: number;
+    method?: string;
     result?: {
         result: {
             type: "object";
             value: MemoryValue;
         };
     };
+    params?: {
+        callFrames?: CallFrames[];
+        scriptId?: string;
+        reason: string;
+        url?: string;
+        hitBreakpoint: any[];
+    };
 };
-
-export const MEMORY_USAGE_ID = 1;

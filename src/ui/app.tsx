@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Entry } from "../modules/fileManager";
 import { Status } from "../constants/status";
 import { MemoryValue } from "../modules/debugger";
 import { NavbarUIComponent } from "./components/navbar";
@@ -15,7 +14,7 @@ export default function Main() {
     const [wsStatus, setWsstatus] = useState(Status.NOT_ACTIVE);
 
     const [memoryUsage, setMemoryUsage] = useState<MemoryValue | null>(null);
-    const [fileStructure, setFileStructure] = useState<Entry[]>([]);
+    const [rootDir, setRootDir] = useState<string>("");
     useEffect(() => {
         try {
             window.electronAPI.onProcessLog((msg) => {
@@ -28,8 +27,9 @@ export default function Main() {
             window.electronAPI.setMemoryUsage((data) => {
                 setMemoryUsage(data?.result?.result?.value);
             });
-            window.electronAPI.getFileStructure((files: Entry[]) => {
-                setFileStructure(files);
+
+            window.electronAPI.onRootDirResolve((dir) => {
+                setRootDir(dir);
             });
         } catch (e) {
             console.error(e);
@@ -47,7 +47,7 @@ export default function Main() {
                     external={memoryUsage?.external}
                 />
                 <div>
-                    <CodeVisualizerUIComponent files={fileStructure} />
+                    <CodeVisualizerUIComponent rootDir={rootDir} />
                 </div>
                 <pre
                     style={{

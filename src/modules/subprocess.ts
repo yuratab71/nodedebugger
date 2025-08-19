@@ -34,11 +34,9 @@ export default class Subprocess {
         onError,
     }: SubprocessInitParams) {
         this.entry = entry;
-        console.log("Spawning the instance with entry point: ", this.entry);
         this.child = spawn("node", [...this.arguments, this.entry], {
             env: this.envs,
         });
-        console.log(this.child);
 
         this.child.stdout.on("data", onData);
         this.child.stderr.on("data", onError);

@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES6",
-    "allowJs": true,
+    "allowJs": false,
     "module": "commonjs",
     "skipLibCheck": true,
     "esModuleInterop": true,
@@ -18,6 +18,7 @@
     "strictBindCallApply": true,
     "strictPropertyInitialization": true,
     "noImplicitThis": true,
+    "noImplicitOverride": true,
     "alwaysStrict": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
@@ -26,6 +27,10 @@
     "noUnusedParameters": true,
     "noUncheckedIndexedAccess": true,
     "useUnknownInCatchVariables": true,
+    "exactOptionalPropertyTypes": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "allowUnusedLabels": false, 
+    "allowUnreachableCode": false,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "jsx": "react-jsx",

@@ -39,7 +39,7 @@ const InfoSection = styled.p`
 const NavbarMenuBlock = styled.div`
     width: 80%;
     display: flex;
-    justify-content: space-around;
+    justify-content: left;
     font-size: 16px;
     font-weight: bold;
     border-style: solid;
@@ -52,10 +52,6 @@ export type NavbarUIComponentProps = {
     heapTotal: number | undefined;
     heapUsed: number | undefined;
     external: number | undefined;
-};
-
-const navbarElement: React.CSSProperties = {
-    width: "20px",
 };
 
 const formatMemory = (mem: number): string => {
@@ -79,6 +75,15 @@ export const NavbarUIComponent: React.FC<NavbarUIComponentProps> = ({
 
     const connectToDebuggingServer = () => {
         window.electronAPI.connectWebSocket();
+    };
+
+    const enableDebugger = () => {
+        console.log("Clicked");
+        window.electronAPI.enableDebugger();
+    };
+
+    const setBrk = () => {
+        window.electronAPI.setBreakpoint();
     };
 
     const resumeExecution = () => {
@@ -125,13 +130,9 @@ export const NavbarUIComponent: React.FC<NavbarUIComponentProps> = ({
                     text={"Connect debugger"}
                     onClick={connectToDebuggingServer}
                 />
-                <Button
-                    text={"Resume"}
-                    onClick={resumeExecution}
-                    disabled={status != "connected"}
-                />
-
-                <div style={navbarElement}>{status}</div>
+                <Button text="Enable debugger??" onClick={enableDebugger} />
+                <Button text="Resume" onClick={resumeExecution} />
+                <Button text="Set brk" onClick={setBrk} />
             </NavbarMenuBlock>
         </NavbarWrapper>
     );

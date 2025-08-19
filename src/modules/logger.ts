@@ -12,21 +12,25 @@ export class Logger {
         this.name = name;
     }
 
-    log(log: string) {
+    log(log: any) {
         console.log(
             this.green + `[${this.name}]: ` + this.resetColor + `${log}`,
         );
     }
 
-    warn(warn: string) {
+    warn(warn: any) {
         console.log(
             this.yellow + `[${this.name}]: ` + this.resetColor + `${warn}`,
         );
     }
 
-    error(error: string) {
+    error(error: any) {
         console.log(
             this.red + `[${this.name}]: ` + this.resetColor + `${error}`,
         );
+    }
+
+    group(obj: any): void {
+        console.log(obj);
     }
 }
