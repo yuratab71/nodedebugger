@@ -1,6 +1,7 @@
 import fs from "node:fs";
-import { readFileSync } from "original-fs";
+import { readFileSync } from "node:fs";
 import path from "path";
+import { SourceMapConsumer } from "source-map-js";
 import { PackageJson, TsConfigJson } from "type-fest";
 import { Logger } from "./logger";
 
@@ -105,16 +106,15 @@ export class FileManager {
     }
 
     registerParsedFile(url: string): void {
-        const fp = path.parse(url);
+        const fp = path.parse(url.slice(8));
         const file: Entry = {
-            path: fp.root + fp.name + fp.ext,
+            path: fp.dir + "/" + fp.name + fp.ext,
             name: fp.name,
             isDir: false,
             extension: fp.ext,
         };
-        this.logger.log(url);
-        this.logger.group(file);
         this.parsedFiles.push(file);
+        this.logger.log(`Parsed: ${this.parsedFiles.length}`);
     }
 
     getDirectoryContent(dir: string) {
@@ -132,5 +132,32 @@ export class FileManager {
         });
 
         return result;
+    }
+
+    evaluateSourceMap(p: string): SourceMapConsumer | null {
+        // TODO: refactor this mess
+        // TODO: add checks for .ts origin files
+        const pathToFile = p.split("\\").join("/");
+        let fileParsed = false;
+        for (let i = 0; i < this.parsedFiles.length; i++) {
+            this.logger.group(this.parsedFiles[i]);
+            if (this.parsedFiles[i]?.path === pathToFile) {
+                fileParsed = true;
+                this.logger.log(`${pathToFile} has been parsed by subprocess`);
+                break;
+            }
+        }
+
+        if (!fileParsed) {
+            this.logger.log(
+                `${pathToFile} has NOT been parsed by subproces, no reason to find source map`,
+            );
+            return null;
+        }
+
+        const sourceMapContent = JSON.parse(this.readFile(pathToFile + ".map"));
+        const sourceMap = new SourceMapConsumer(sourceMapContent);
+
+        return sourceMap;
     }
 }

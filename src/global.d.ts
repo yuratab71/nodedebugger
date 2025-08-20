@@ -1,6 +1,7 @@
 import { DebuggingResponse } from "./modules/debuggigmessages";
 import { Entry } from "./modules/fileManager";
 import fs from "fs";
+import { SourceMapConsumer } from "source-map-js";
 
 export {};
 
@@ -27,6 +28,7 @@ declare global {
             onRootDirResolve: (callback: (rootDir: string) => void) => void;
             getFileStructure: (src: string) => Promise<Entry[]>;
             getFileContent: (src: string) => Promise<any>;
+            getSourceMap: (src: string) => Promise<SourceMapConsumer | null>;
             getRootDir: (callback: (rootDir: string) => void) => void;
         };
     }

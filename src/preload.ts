@@ -17,6 +17,7 @@ import {
     GET_ROOT_DIR,
     ON_ROOT_DIR_RESOLVE,
     ON_FILE_STRUCTURE_RESOLVE,
+    GET_SOURCE_MAP,
 } from "./constants/commands";
 import { DebuggingResponse } from "./modules/debugger";
 import { Entry } from "./modules/fileManager";
@@ -53,6 +54,7 @@ const Window: Pick<Window, "electronAPI"> = {
             ipcRenderer.invoke(GET_FILE_STRUCTURE, src),
         getFileContent: (src: string) =>
             ipcRenderer.invoke(GET_FILE_CONTENT, src),
+        getSourceMap: (src: string) => ipcRenderer.invoke(GET_SOURCE_MAP, src),
         getRootDir: (callback: (rootDir: string) => void) =>
             ipcRenderer.on(GET_ROOT_DIR, (_, rootDir) => callback(rootDir)),
     },

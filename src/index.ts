@@ -12,6 +12,7 @@ import {
     DEBUGGER_ENABLE,
     GET_FILE_CONTENT,
     GET_FILE_STRUCTURE,
+    GET_SOURCE_MAP,
     ON_FILE_STRUCTURE_RESOLVE,
     ON_ROOT_DIR_RESOLVE,
     PROCESS_LOG,
@@ -157,6 +158,7 @@ const processWebSocketMessageCallback = (message: DebuggingResponse) => {
                 // CONTINUE somewhere here
                 if (message?.params?.url.includes("nest_app/\dist")) {
                     // logger.log(message.params.url);
+                    logger.group(message.params);
                     fileManager.registerParsedFile(message.params.url);
                 }
                 break;
@@ -204,6 +206,7 @@ ipcMain.on(SET_WS_STATUS, onSetWsStatusHandler);
 
 ipcMain.handle(GET_FILE_CONTENT, onGetFileContentHandler);
 ipcMain.handle(GET_FILE_STRUCTURE, onGetFileStructureHandler);
+ipcMain.handle(GET_SOURCE_MAP, onGetSourceMapHandler);
 ipcMain.on(DEBUGGER_ENABLE, onDebuggerEnableHandler);
 ipcMain.on(SET_BREAKPOINT, onSetBreakpoint);
 ipcMain.on(RESUME_EXECUTION, onDebuggerResumeHandler);
@@ -336,4 +339,8 @@ function onSetBreakpoint() {
     if (fileManager.main && urls[0] && scriptIds[0]) {
         debuggerDomain.setBreakpoint(Ids.DEBUGGER.SET_BREAKPOINT, scriptIds[0]);
     }
+}
+
+function onGetSourceMapHandler(_: IpcMainInvokeEvent, src: string) {
+    return fileManager.evaluateSourceMap(src);
 }

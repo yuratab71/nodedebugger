@@ -51,6 +51,7 @@
         "electron-squirrel-startup": "^1.0.1",
         "react": "^19.1.0",
         "react-dom": "^19.1.0",
+        "source-map-js": "^1.2.1",
         "styled-components": "^6.1.19",
         "type-fest": "^4.41.0",
         "ws": "^8.18.3"

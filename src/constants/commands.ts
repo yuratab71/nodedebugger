@@ -11,6 +11,7 @@ export const GET_FILE_CONTENT = "get_file_content";
 export const GET_ROOT_DIR = "get_root_dir";
 export const ON_ROOT_DIR_RESOLVE = "on_root_dir_resolve";
 export const ON_FILE_STRUCTURE_RESOLVE = "on_file_structure_resolve";
+export const GET_SOURCE_MAP = "get_source_map";
 //debugger command
 export const GET_SCRIPT_SOURCE = "get_script_source";
 export const DEBUGGER_ENABLE = "debugger_enable";
