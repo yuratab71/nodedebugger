@@ -32,6 +32,7 @@ export type DebuggingResponse = {
         scriptId?: string;
         reason: string;
         url?: string;
-        hitBreakpoint: any[];
+        hitBreakpoint?: any[];
+        sourceMapURL?: string;
     };
 };

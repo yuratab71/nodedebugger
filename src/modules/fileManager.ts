@@ -4,13 +4,40 @@ import path from "path";
 import { SourceMapConsumer } from "source-map-js";
 import { PackageJson, TsConfigJson } from "type-fest";
 import { Logger } from "./logger";
+import { SourceMap } from "../types/sourceMap";
 
 export type Entry = {
     path: string;
     name: string;
     isDir: boolean;
     extension: string;
+    sourceMapUrl?: string;
+    sourceMap: SourceMap | null;
+    sources?: string[] | undefined;
 };
+
+/**
+ * Slash for unix-like systems paths
+ * @constant
+ * @default "/"
+ **/
+const POSIX_SEPARATOR = "/";
+
+/**
+ * Backslash for windows paths
+ * @constant
+ * @default "\"
+ **/
+const WIN32_SEPARATOR = "\\";
+
+/**
+ * All V8 url starts with this line
+ * a bit of a hack, will be replaced in future
+ * @type {string}
+ * @constant
+ * @default "file:///"
+ **/
+// const SCRIPT_URL_BASE = "file:///";
 
 export type FileManagerInitParams = {
     src: string;
@@ -54,6 +81,7 @@ export class FileManager {
                 path: location,
                 isDir: stats.isDirectory(),
                 extension: path.extname(entry),
+                sourceMap: null,
             });
         });
         this.logger.log("directory files resolved");
@@ -102,17 +130,25 @@ export class FileManager {
         const isFile = fs.lstatSync(src).isFile();
         if (isFile) return readFileSync(src, { encoding: "utf8" });
 
-        return "Not a file, maybe a floder\n";
+        return "Not a file, maybe a folder\n";
     }
 
-    registerParsedFile(url: string): void {
+    registerParsedFile(url: string, sourceMapUrl: string): void {
         const fp = path.parse(url.slice(8));
+        const sm = this.ecstrackInlineSourceMap(sourceMapUrl);
+
         const file: Entry = {
             path: fp.dir + "/" + fp.name + fp.ext,
             name: fp.name,
             isDir: false,
             extension: fp.ext,
+            sourceMapUrl: sourceMapUrl,
+            sourceMap: sm,
+            sources: sm?.sources.map((el) => {
+                return this.normalizeForPOSIXpath(path.resolve(fp.dir, el));
+            }),
         };
+        this.logger.group(file);
         this.parsedFiles.push(file);
         this.logger.log(`Parsed: ${this.parsedFiles.length}`);
     }
@@ -128,36 +164,75 @@ export class FileManager {
                 path: location,
                 isDir: stats.isDirectory(),
                 extension: path.extname(entry),
+                sourceMap: null,
             });
         });
 
         return result;
     }
 
-    evaluateSourceMap(p: string): SourceMapConsumer | null {
+    evaluateSourceMap(origin: string): SourceMapConsumer | null {
+        // INFO: two entries, if schecking js file and ts file
+        // INFO: use POSIX slash style, as "/", cause V8 inspector uses POSIX style
+        //
+        //
         // TODO: refactor this mess
         // TODO: add checks for .ts origin files
-        const pathToFile = p.split("\\").join("/");
-        let fileParsed = false;
+        let normalizedPath;
+        if (process.platform === "win32") {
+            normalizedPath = this.normalizeForPOSIXpath(origin);
+        } else {
+            normalizedPath = origin;
+        }
+
+        this.logger.log("originla: " + origin);
+        this.logger.log("normalized: " + normalizedPath);
+
+        let isFileParsed = false;
+
         for (let i = 0; i < this.parsedFiles.length; i++) {
-            this.logger.group(this.parsedFiles[i]);
-            if (this.parsedFiles[i]?.path === pathToFile) {
-                fileParsed = true;
-                this.logger.log(`${pathToFile} has been parsed by subprocess`);
-                break;
+            if (this.parsedFiles[i]?.path === normalizedPath) {
+                this.logger.log(`${normalizedPath} HAS BEEN parsed by V8`);
+                this.logger.log(`here is the source map`);
+                this.logger.group(this.parsedFiles[i]?.sourceMap);
+                isFileParsed = true;
             }
         }
+        if (!isFileParsed && path.parse(normalizedPath).ext === ".ts") {
+            this.logger.log(`${normalizedPath}: is a .ts file`);
 
-        if (!fileParsed) {
-            this.logger.log(
-                `${pathToFile} has NOT been parsed by subproces, no reason to find source map`,
-            );
-            return null;
+            for (let i = 0; i < this.parsedFiles.length; i++) {
+                if (this.parsedFiles[i]?.sources?.includes(normalizedPath)) {
+                    this.logger.log(
+                        `${normalizedPath} is the origin for: ${this.parsedFiles[i]?.name}`,
+                    );
+                    isFileParsed = true;
+                }
+            }
+        }
+        if (!isFileParsed)
+            this.logger.log(`${normalizedPath} HAS NOT parsed by V8`);
+
+        return null;
+    }
+
+    private ecstrackInlineSourceMap(inlineSM: string): SourceMap | null {
+        this.logger.log("check source map");
+        const regExp = /data:application\/json;base64,([^\s]+)/;
+
+        const match = inlineSM.match(regExp);
+
+        if (!match) return null;
+        if (match[1]) {
+            const json = atob(match[1]);
+            const result: SourceMap = JSON.parse(json);
+            return result;
         }
 
-        const sourceMapContent = JSON.parse(this.readFile(pathToFile + ".map"));
-        const sourceMap = new SourceMapConsumer(sourceMapContent);
+        return null;
+    }
 
-        return sourceMap;
+    private normalizeForPOSIXpath(p: string) {
+        return p.split(WIN32_SEPARATOR).join(POSIX_SEPARATOR);
     }
 }

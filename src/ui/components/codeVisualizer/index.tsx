@@ -1,5 +1,4 @@
 import React, { JSX, useEffect, useState } from "react";
-import { SourceMapConsumer } from "source-map-js";
 import styled from "styled-components";
 import { Entry } from "../../../modules/fileManager";
 import { CodeViewerUIComponent } from "../codeViewer";
@@ -21,7 +20,6 @@ export const CodeVisualizerUIComponent: React.FC<
     const [currentDir, setCurrentDir] = useState<string>(rootDir);
     const [fileStructure, setFileStructure] = useState<Entry[]>([]);
     const [fileContent, setFileContent] = useState<string>("");
-    const [soureMap, setSourceMap] = useState<SourceMapConsumer | null>(null);
 
     useEffect(() => {
         try {

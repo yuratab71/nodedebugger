@@ -12,7 +12,7 @@ export class Logger {
         this.name = name;
     }
 
-    log(log: any) {
+    log(log?: any | undefined) {
         console.log(
             this.green + `[${this.name}]: ` + this.resetColor + `${log}`,
         );

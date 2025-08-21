@@ -156,10 +156,15 @@ const processWebSocketMessageCallback = (message: DebuggingResponse) => {
             case DebuggerEvents.SCRIPT_PARSED:
                 if (!message.params?.url) break;
                 // CONTINUE somewhere here
-                if (message?.params?.url.includes("nest_app/\dist")) {
+                if (
+                    message?.params?.url.includes("nest_app/\dist") &&
+                    message?.params?.sourceMapURL
+                ) {
                     // logger.log(message.params.url);
-                    logger.group(message.params);
-                    fileManager.registerParsedFile(message.params.url);
+                    fileManager.registerParsedFile(
+                        message.params.url,
+                        message.params?.sourceMapURL,
+                    );
                 }
                 break;
             default:
