@@ -15,7 +15,7 @@ declare global {
             getScriptSource: () => void;
             enableDebugger: () => void;
             setBreakpoint: () => void;
-            setBreakpointByUrl: () => void;
+            setBreakpointByUrl: (url: string) => void;
             setWsStatus: (callback: (string) => void) => void;
             setMemoryUsage: (
                 callback: (data: DebuggingResponse) => void,

@@ -192,14 +192,18 @@ export class FileManager {
 
         for (let i = 0; i < this.parsedFiles.length; i++) {
             if (this.parsedFiles[i]?.path === normalizedPath) {
-                this.logger.log(`${normalizedPath} HAS BEEN parsed by V8`);
+                this.logger.log(
+                    `${normalizedPath} is .js file and HAS BEEN parsed by V8`,
+                );
                 this.logger.log(`here is the source map`);
                 this.logger.group(this.parsedFiles[i]?.sourceMap);
-                isFileParsed = true;
+                return null;
             }
         }
         if (!isFileParsed && path.parse(normalizedPath).ext === ".ts") {
-            this.logger.log(`${normalizedPath}: is a .ts file`);
+            this.logger.log(
+                `${normalizedPath}: is a .ts file and HAS NOT been parsed directly`,
+            );
 
             for (let i = 0; i < this.parsedFiles.length; i++) {
                 if (this.parsedFiles[i]?.sources?.includes(normalizedPath)) {
@@ -207,6 +211,10 @@ export class FileManager {
                         `${normalizedPath} is the origin for: ${this.parsedFiles[i]?.name}`,
                     );
                     isFileParsed = true;
+                    const smu = this.parsedFiles[i]?.sourceMap;
+                    if (!!smu) {
+                        return new SourceMapConsumer(smu);
+                    }
                 }
             }
         }

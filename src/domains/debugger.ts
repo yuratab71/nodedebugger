@@ -1,3 +1,4 @@
+import { Ids } from "../constants/debuggerMessageIds";
 import { Logger } from "../modules/logger";
 import { WS } from "../modules/wsdbserver";
 
@@ -91,9 +92,18 @@ export class DebuggerDomain {
         this.ws.send(this.buildMessage({ id: id, method: this.PAUSE }));
     }
 
-    resume(id: number): void {
+    async resume(id: number): Promise<void> {
         this.logger.log("send resume");
-        this.ws.send(this.buildMessage({ id, method: this.RESUME }));
+        const result = await this.ws.sendAndReceive(
+            id,
+            this.buildMessage({ id, method: this.RESUME }),
+        );
+
+        if (result != null) {
+            this.logger.group(result);
+        } else {
+            this.logger.log("get null result on RESUME event");
+        }
     }
 
     setBreakpointByUrl(id: number, url: string): void {

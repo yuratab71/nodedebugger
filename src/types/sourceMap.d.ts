@@ -1,5 +1,5 @@
 export type SourceMap = {
-    version: number;
+    version: string;
     sourceRoot: string;
     sources: string[];
     names: string[];

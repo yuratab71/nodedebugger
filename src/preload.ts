@@ -31,7 +31,8 @@ const Window: Pick<Window, "electronAPI"> = {
         getScriptSource: () => ipcRenderer.send(GET_SCRIPT_SOURCE),
         enableDebugger: () => ipcRenderer.send(DEBUGGER_ENABLE),
         setBreakpoint: () => ipcRenderer.send(SET_BREAKPOINT),
-        setBreakpointByUrl: () => ipcRenderer.send(SET_BREAKPOINT_BY_URL),
+        setBreakpointByUrl: (url: string) =>
+            ipcRenderer.send(SET_BREAKPOINT_BY_URL, url),
         setWsStatus: (callback: (status: string) => void) => {
             ipcRenderer.on(SET_WS_STATUS, (_, status) => callback(status));
         },
@@ -54,6 +55,7 @@ const Window: Pick<Window, "electronAPI"> = {
             ipcRenderer.invoke(GET_FILE_STRUCTURE, src),
         getFileContent: (src: string) =>
             ipcRenderer.invoke(GET_FILE_CONTENT, src),
+
         getSourceMap: (src: string) => ipcRenderer.invoke(GET_SOURCE_MAP, src),
         getRootDir: (callback: (rootDir: string) => void) =>
             ipcRenderer.on(GET_ROOT_DIR, (_, rootDir) => callback(rootDir)),

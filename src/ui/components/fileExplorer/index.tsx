@@ -37,10 +37,6 @@ export const FileExplorerUIComponent: React.FC<
     onStepOutOfDirCallback,
     onClickCallback,
 }: FileExplorerUIComponentProps) => {
-    console.log("DIR: " + dir);
-    console.log(Array.isArray(files));
-    console.log(files);
-
     return (
         <FileExplorerWrapper>
             <FileIcon>{"~/" + dir.split("\\").slice(-1)[0]}</FileIcon>

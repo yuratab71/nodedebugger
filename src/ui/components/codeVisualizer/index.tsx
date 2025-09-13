@@ -36,9 +36,13 @@ export const CodeVisualizerUIComponent: React.FC<
                 .getFileContent(entry.path)
                 .then((data) => setFileContent(data));
 
-            window.electronAPI
-                .getSourceMap(entry.path)
-                .then((data) => setSourceMap(data));
+            window.electronAPI.getSourceMap(entry.path).then((data) => {
+                if (data === null) {
+                    console.log("received null: " + data);
+                } else {
+                    console.log(data);
+                }
+            });
             return;
         }
 

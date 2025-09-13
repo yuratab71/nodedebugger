@@ -32,6 +32,7 @@ import { RuntimeDomain } from "./domains/runtime";
 import { DebuggingResponse } from "./modules/debugger";
 import { Entry, FileManager } from "./modules/fileManager";
 import { Logger, passMessage } from "./modules/logger";
+// import { QueueProcessor } from "./modules/queueProcessor";
 import Subprocess from "./modules/subprocess";
 import { WS } from "./modules/wsdbserver";
 import { detectConnectionString } from "./utils/connmatch";
@@ -53,6 +54,7 @@ let debuggerDomain: DebuggerDomain;
 
 let subprocess: Subprocess;
 let fileManager: FileManager;
+// const queueProcessor = QueueProcessor.instance();
 const urls: string[] = [];
 const scriptIds: string[] = [];
 

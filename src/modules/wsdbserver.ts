@@ -10,8 +10,11 @@ type WsInitParams = {
 
 export class WS {
     private readonly webSocket: WebSocket;
+    private readonly MAX_RETRIES = 3;
+    private readonly RETRY_DELAY = 50;
     url: string;
     status = Status.NOT_ACTIVE;
+    private pendingRequests: Map<string | undefined, DebuggingResponse>;
 
     static #instance: WS;
     static instance(params: WsInitParams) {
@@ -27,6 +30,7 @@ export class WS {
         onStatusUpdateCallback,
         onMessageCallback,
     }: WsInitParams) {
+        this.pendingRequests = new Map();
         this.url = url;
         this.webSocket = new WebSocket(this.url);
 
@@ -43,11 +47,11 @@ export class WS {
             onStatusUpdateCallback(Status.DISCONNECTED);
         });
 
-        this.webSocket.on("message", function message(data: RawData) {
+        this.webSocket.on("message", (data: RawData) => {
             try {
-                onMessageCallback(
-                    JSON.parse(data.toString()) as DebuggingResponse,
-                );
+                const resp = JSON.parse(data.toString()) as DebuggingResponse;
+                this.pendingRequests.set(resp.id?.toString(), resp);
+                onMessageCallback(resp);
             } catch (e) {
                 console.debug(e);
             }
@@ -65,5 +69,27 @@ export class WS {
 
     send(message: string): void {
         this.webSocket.send(message);
+        // TODO: add possibility to send messages and receive response and notify the caller of its success or failure
+    }
+
+    async sendAndReceive(
+        id: number,
+        message: string,
+    ): Promise<DebuggingResponse | null> {
+        this.send(message);
+
+        let isResolved = false;
+        return new Promise<DebuggingResponse | null>((resolve, _) => {
+            for (let i = 0; i < this.MAX_RETRIES; i++) {
+                if (isResolved) return;
+                setTimeout(() => {
+                    const resp = this.pendingRequests.get(id.toString());
+                    if (resp) {
+                        resolve(resp);
+                        isResolved = true;
+                    }
+                }, this.RETRY_DELAY);
+            }
+        });
     }
 }

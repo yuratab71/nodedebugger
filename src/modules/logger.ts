@@ -31,6 +31,8 @@ export class Logger {
     }
 
     group(obj: any): void {
+        console.log("//");
         console.log(obj);
+        console.log("\/\/");
     }
 }
