@@ -1,5 +1,7 @@
 import { JSX, useRef, useState } from "react";
+import { LocationByUrl } from "../../../types/debugger";
 import styled from "styled-components";
+import { Button } from "../common/button";
 
 const CodeViewerWrapper = styled.div`
     border-style: solid;
@@ -21,6 +23,7 @@ const TextPre = styled.pre`
 `;
 
 type CodeViewerUIComponentProps = {
+    url: string;
     text: string;
 };
 
@@ -37,6 +40,7 @@ function getCaretIndex(pre: HTMLElement, range: Range): number {
 }
 
 export const CodeViewerUIComponent: React.FC<CodeViewerUIComponentProps> = ({
+    url,
     text,
 }: CodeViewerUIComponentProps): JSX.Element => {
     const preRef = useRef<HTMLPreElement | null>(null);
@@ -70,6 +74,19 @@ export const CodeViewerUIComponent: React.FC<CodeViewerUIComponentProps> = ({
 
         setHoverPosition({ line, column: col });
     };
+
+    const onClickBtn = () => {
+        console.log("sending the hover pos");
+        if (hoverPos?.line && hoverPos.column) {
+            const loc: LocationByUrl = {
+                url: url,
+                lineNumber: hoverPos.line,
+                columnNumber: hoverPos.column,
+            };
+            window.electronAPI.setBreakpointByUrl(loc);
+        }
+    };
+
     return (
         <CodeViewerWrapper id="code">
             <TextPre ref={preRef} onMouseMove={handleMouse}>
@@ -80,6 +97,7 @@ export const CodeViewerUIComponent: React.FC<CodeViewerUIComponentProps> = ({
                     Line: {hoverPos.line} Column: {hoverPos.column}
                 </div>
             )}
+            <Button text="set brk" onClick={onClickBtn} />
         </CodeViewerWrapper>
     );
 };

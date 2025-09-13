@@ -21,6 +21,7 @@ import {
 } from "./constants/commands";
 import { DebuggingResponse } from "./modules/debugger";
 import { Entry } from "./modules/fileManager";
+import { LocationByUrl } from "./types/debugger";
 
 const Window: Pick<Window, "electronAPI"> = {
     electronAPI: {
@@ -31,8 +32,10 @@ const Window: Pick<Window, "electronAPI"> = {
         getScriptSource: () => ipcRenderer.send(GET_SCRIPT_SOURCE),
         enableDebugger: () => ipcRenderer.send(DEBUGGER_ENABLE),
         setBreakpoint: () => ipcRenderer.send(SET_BREAKPOINT),
-        setBreakpointByUrl: (url: string) =>
-            ipcRenderer.send(SET_BREAKPOINT_BY_URL, url),
+        setBreakpointByUrl: (data: LocationByUrl) => {
+            console.log(`PRELOAD SET DATA ${data}`);
+            ipcRenderer.send(SET_BREAKPOINT_BY_URL, data);
+        },
         setWsStatus: (callback: (status: string) => void) => {
             ipcRenderer.on(SET_WS_STATUS, (_, status) => callback(status));
         },

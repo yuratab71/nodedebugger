@@ -20,6 +20,7 @@ export const CodeVisualizerUIComponent: React.FC<
     const [currentDir, setCurrentDir] = useState<string>(rootDir);
     const [fileStructure, setFileStructure] = useState<Entry[]>([]);
     const [fileContent, setFileContent] = useState<string>("");
+    const [url, setUrl] = useState<string>("");
 
     useEffect(() => {
         try {
@@ -32,9 +33,10 @@ export const CodeVisualizerUIComponent: React.FC<
     }, []);
     const handleClick = (entry: Entry) => {
         if (!entry.isDir) {
-            window.electronAPI
-                .getFileContent(entry.path)
-                .then((data) => setFileContent(data));
+            window.electronAPI.getFileContent(entry.path).then((data) => {
+                setFileContent(data);
+                setUrl(entry.path);
+            });
 
             window.electronAPI.getSourceMap(entry.path).then((data) => {
                 if (data === null) {
@@ -72,7 +74,7 @@ export const CodeVisualizerUIComponent: React.FC<
                 files={fileStructure}
                 onClickCallback={handleClick}
             />
-            <CodeViewerUIComponent text={fileContent} />
+            <CodeViewerUIComponent url={url} text={fileContent} />
         </CodeVisualizerWrapper>
     );
 };

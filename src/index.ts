@@ -18,6 +18,7 @@ import {
     PROCESS_LOG,
     RESUME_EXECUTION,
     SET_BREAKPOINT,
+    SET_BREAKPOINT_BY_URL,
     SET_DIRECTORY,
     SET_MEMORY_USAGE,
     SET_WS_STATUS,
@@ -35,6 +36,7 @@ import { Logger, passMessage } from "./modules/logger";
 // import { QueueProcessor } from "./modules/queueProcessor";
 import Subprocess from "./modules/subprocess";
 import { WS } from "./modules/wsdbserver";
+import { LocationByUrl } from "./types/debugger";
 import { detectConnectionString } from "./utils/connmatch";
 
 let detectedUrl = "";
@@ -216,6 +218,7 @@ ipcMain.handle(GET_FILE_STRUCTURE, onGetFileStructureHandler);
 ipcMain.handle(GET_SOURCE_MAP, onGetSourceMapHandler);
 ipcMain.on(DEBUGGER_ENABLE, onDebuggerEnableHandler);
 ipcMain.on(SET_BREAKPOINT, onSetBreakpoint);
+ipcMain.on(SET_BREAKPOINT_BY_URL, onSetBreakpointByUrlHandler);
 ipcMain.on(RESUME_EXECUTION, onDebuggerResumeHandler);
 
 async function onSetDirectoryHandler(): Promise<void> {
@@ -350,4 +353,10 @@ function onSetBreakpoint() {
 
 function onGetSourceMapHandler(_: IpcMainInvokeEvent, src: string) {
     return fileManager.evaluateSourceMap(src);
+}
+
+function onSetBreakpointByUrlHandler(_: IpcMainEvent, loc: LocationByUrl) {
+    logger.log("GETTIN the hover pos from ui");
+    logger.group(loc);
+    debuggerDomain.setBreakpointByUrl(Ids.DEBUGGER.SET_BREAKPOINT_BY_URL, loc);
 }

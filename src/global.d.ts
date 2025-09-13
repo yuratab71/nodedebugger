@@ -2,6 +2,7 @@ import { DebuggingResponse } from "./modules/debuggigmessages";
 import { Entry } from "./modules/fileManager";
 import fs from "fs";
 import { SourceMapConsumer } from "source-map-js";
+import { LocationByUrl } from "./types/debugger";
 
 export {};
 
@@ -15,7 +16,7 @@ declare global {
             getScriptSource: () => void;
             enableDebugger: () => void;
             setBreakpoint: () => void;
-            setBreakpointByUrl: (url: string) => void;
+            setBreakpointByUrl: (data: LocationByUrl) => void;
             setWsStatus: (callback: (string) => void) => void;
             setMemoryUsage: (
                 callback: (data: DebuggingResponse) => void,

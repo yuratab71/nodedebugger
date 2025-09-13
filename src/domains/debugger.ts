@@ -1,4 +1,4 @@
-import { Ids } from "../constants/debuggerMessageIds";
+import { LocationByUrl } from "../types/debugger";
 import { Logger } from "../modules/logger";
 import { WS } from "../modules/wsdbserver";
 
@@ -106,16 +106,21 @@ export class DebuggerDomain {
         }
     }
 
-    setBreakpointByUrl(id: number, url: string): void {
-        this.logger.log(`url: ${url}`);
-        this.ws.send(
+    async setBreakpointByUrl(id: number, loc: LocationByUrl): Promise<void> {
+        this.logger.log(`url: ${loc.url}`);
+        this.logger.group(loc);
+        const result = await this.ws.sendAndReceive(
+            id,
             this.buildMessage({
                 id: id,
                 method: this.SET_BREAKPOINT_BY_URL,
-                lineNumber: 0,
-                columnNumber: 0,
+                url: "file:" + loc.url,
+                lineNumber: loc.lineNumber,
+                columnNumber: loc.columnNumber,
             }),
         );
+
+        this.logger.group(result);
     }
 
     setBreakpoint(id: number, scriptId: string): void {
