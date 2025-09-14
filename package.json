@@ -6,7 +6,8 @@
     "main": ".webpack/main",
     "scripts": {
         "start": "electron-forge start",
-        "dev": "nodemon",
+        "dev:win": "cls && nodemon",
+        "dev:unix": "clear && nodemon",
         "package": "electron-forge package",
         "make": "electron-forge make",
         "publish": "electron-forge publish",

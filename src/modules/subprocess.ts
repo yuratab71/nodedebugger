@@ -12,7 +12,7 @@ export default class Subprocess {
     private arguments = [
         "--inspect-brk",
         "--max-old-space-size=1024",
-        "--trace-gc",
+        //        "--trace-gc",
     ];
     private envs = {
         PORT: "3030",
@@ -51,7 +51,7 @@ export default class Subprocess {
     }
 
     static kill(): void {
-        if (Subprocess.#instance?.child?.kill()) {
+        if (Subprocess.#instance?.child?.kill("SIGKILL")) {
             Subprocess.#instance = null;
             console.log("Subprocess killed successfully");
         } else {

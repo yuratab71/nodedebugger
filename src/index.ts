@@ -30,7 +30,7 @@ import { Ids } from "./constants/debuggerMessageIds";
 import { Status } from "./constants/status";
 import { DebuggerDomain, DebuggerEvents } from "./domains/debugger";
 import { RuntimeDomain } from "./domains/runtime";
-import { DebuggingResponse } from "./modules/debugger";
+import { DebuggingResponse } from "./types/debugger";
 import { Entry, FileManager } from "./modules/fileManager";
 import { Logger, passMessage } from "./modules/logger";
 // import { QueueProcessor } from "./modules/queueProcessor";
@@ -92,6 +92,12 @@ const createWindow = (): void => {
     // prevent subprocess to continue execution on linux
     process.on("SIGINT", () => {
         logger.log("received SIGINT signal");
+        Subprocess.kill();
+        process.exit(0);
+    });
+
+    process.on("SIGTERM", () => {
+        logger.log("received SIGTERM signal");
         Subprocess.kill();
         process.exit(0);
     });
@@ -198,10 +204,14 @@ const subprocessOnErrrorCallback = (data: any) => {
 
 const subprocessOnExitCallback = (code: number, signal: NodeJS.Signals) => {
     logger.log(`Process exit code ${code} and signal ${signal}`);
-    mainWindow.webContents.send(
-        PROCESS_LOG,
-        passMessage(`Process exited with code ${code} and signal:${signal}`),
-    );
+    if (!mainWindow.isDestroyed()) {
+        mainWindow.webContents.send(
+            PROCESS_LOG,
+            passMessage(
+                `Process exited with code ${code} and signal:${signal}`,
+            ),
+        );
+    }
 };
 
 // main event that trigger all application, must be set first
@@ -356,7 +366,7 @@ function onGetSourceMapHandler(_: IpcMainInvokeEvent, src: string) {
 }
 
 function onSetBreakpointByUrlHandler(_: IpcMainEvent, loc: LocationByUrl) {
-    logger.log("GETTIN the hover pos from ui");
-    logger.group(loc);
+    const ou = fileManager.getOriginUrl(loc.url);
+    logger.log(`Original url: ${ou}`);
     debuggerDomain.setBreakpointByUrl(Ids.DEBUGGER.SET_BREAKPOINT_BY_URL, loc);
 }

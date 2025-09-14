@@ -1,5 +1,5 @@
 {
     "watch": ["src"],
     "ext": "*",
-    "exec": "cls && electron-forge start"
+    "exec": "electron-forge start"
 }

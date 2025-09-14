@@ -1,4 +1,6 @@
-import { DebuggingResponse } from "./debugger";
+// TODO: do we really need this abstraction?????
+
+import { DebuggingResponse } from "../types/debugger";
 import { Ids } from "../constants/debuggerMessageIds";
 import { BrowserWindow } from "electron";
 import { Logger } from "./logger";

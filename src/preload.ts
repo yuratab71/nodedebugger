@@ -19,9 +19,8 @@ import {
     ON_FILE_STRUCTURE_RESOLVE,
     GET_SOURCE_MAP,
 } from "./constants/commands";
-import { DebuggingResponse } from "./modules/debugger";
 import { Entry } from "./modules/fileManager";
-import { LocationByUrl } from "./types/debugger";
+import { DebuggingResponse, LocationByUrl } from "./types/debugger";
 
 const Window: Pick<Window, "electronAPI"> = {
     electronAPI: {

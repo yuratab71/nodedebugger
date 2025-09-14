@@ -224,6 +224,21 @@ export class FileManager {
         return null;
     }
 
+    getOriginUrl(url: string): string | null {
+        for (let i = 0; i < this.parsedFiles.length; i++) {
+            this.logger.group(this.parsedFiles[i]?.sources);
+           if (this.parsedFiles[i]?.sources?.includes(url)) {
+
+                this.logger.log("detect the source file for given url, creating source map");
+
+
+                    this.logger.group(this.parsedFiles[i]?.sourceMap);
+            };
+        };
+
+        return null;
+    }
+
     private ecstrackInlineSourceMap(inlineSM: string): SourceMap | null {
         this.logger.log("check source map");
         const regExp = /data:application\/json;base64,([^\s]+)/;

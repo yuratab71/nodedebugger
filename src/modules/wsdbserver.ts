@@ -1,6 +1,6 @@
 import { Status } from "../constants/status";
 import { RawData, WebSocket } from "ws";
-import { DebuggingResponse } from "./debugger";
+import { DebuggingResponse } from "../types/debugger";
 
 type WsInitParams = {
     url: string;

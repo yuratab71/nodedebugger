@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Status } from "../constants/status";
-import { MemoryValue } from "../modules/debugger";
+import { MemoryValue } from "../types/debugger";
 import { NavbarUIComponent } from "./components/navbar";
 import { CodeVisualizerUIComponent } from "./components/codeVisualizer";
 import styled from "styled-components";
