@@ -32,7 +32,6 @@ const Window: Pick<Window, "electronAPI"> = {
         enableDebugger: () => ipcRenderer.send(DEBUGGER_ENABLE),
         setBreakpoint: () => ipcRenderer.send(SET_BREAKPOINT),
         setBreakpointByUrl: (data: LocationByUrl) => {
-            console.log(`PRELOAD SET DATA ${data}`);
             ipcRenderer.send(SET_BREAKPOINT_BY_URL, data);
         },
         setWsStatus: (callback: (status: string) => void) => {

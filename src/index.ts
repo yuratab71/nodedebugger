@@ -6,7 +6,6 @@ import {
     IpcMainEvent,
     IpcMainInvokeEvent,
 } from "electron";
-import path from "path";
 import {
     CONNECT_TO_DEBUGGER,
     DEBUGGER_ENABLE,
@@ -33,11 +32,12 @@ import { RuntimeDomain } from "./domains/runtime";
 import { DebuggingResponse } from "./types/debugger";
 import { Entry, FileManager } from "./modules/fileManager";
 import { Logger, passMessage } from "./modules/logger";
-// import { QueueProcessor } from "./modules/queueProcessor";
 import Subprocess from "./modules/subprocess";
 import { WS } from "./modules/wsdbserver";
 import { LocationByUrl } from "./types/debugger";
 import { detectConnectionString } from "./utils/connmatch";
+import { StartSubprocessTask } from "./strategies/startSubprocessStrategyTask";
+import { TaskQueueRunner } from "./modules/taskQueueRunner";
 
 let detectedUrl = "";
 let shouldDetectUrl = true;
@@ -62,6 +62,7 @@ const scriptIds: string[] = [];
 
 let mainWindow: BrowserWindow;
 const logger = new Logger("IPC MAIN");
+const taskRunner = TaskQueueRunner.instance();
 
 // =============================================
 
@@ -183,37 +184,6 @@ const processWebSocketMessageCallback = (message: DebuggingResponse) => {
     }
     return;
 };
-
-const subprocessOnDataCallback = (data: any) => {
-    logger.log("Received data from subprocess: " + data.toString());
-    mainWindow.webContents.send(PROCESS_LOG, data.toString());
-};
-
-const subprocessOnErrrorCallback = (data: any) => {
-    const str = data.toString();
-    if (shouldDetectUrl) {
-        const url = detectConnectionString(str);
-        if (url) {
-            detectedUrl = url;
-        }
-
-        shouldDetectUrl = !shouldDetectUrl;
-    }
-    mainWindow.webContents.send(PROCESS_LOG, `ERROR: ${data.toString()}`);
-};
-
-const subprocessOnExitCallback = (code: number, signal: NodeJS.Signals) => {
-    logger.log(`Process exit code ${code} and signal ${signal}`);
-    if (!mainWindow.isDestroyed()) {
-        mainWindow.webContents.send(
-            PROCESS_LOG,
-            passMessage(
-                `Process exited with code ${code} and signal:${signal}`,
-            ),
-        );
-    }
-};
-
 // main event that trigger all application, must be set first
 // parse directory where project located
 ipcMain.on(SET_DIRECTORY, onSetDirectoryHandler);
@@ -256,31 +226,13 @@ async function onSetDirectoryHandler(): Promise<void> {
 }
 
 function onStartSubprocessHandler(): void {
-    if (Subprocess.isRunning()) {
-        mainWindow.webContents.send(
-            PROCESS_LOG,
-            passMessage("Process already running"),
-        );
-        return;
-    }
-    let mainPath = fileManager.getPathToMain();
-    if (!mainPath) {
-        // TODO just a hardcode
-        mainPath = "C:\Users\ASUS\Desktop\nest_app\dist";
-    }
-    subprocess = Subprocess.instance({
-        entry: path.normalize(mainPath),
-        onData: subprocessOnDataCallback,
-        onError: subprocessOnErrrorCallback,
-        onExit: subprocessOnExitCallback,
+    const strategy = new StartSubprocessTask({
+        mainWindow,
+        fileManager,
+        subprocess,
     });
 
-    mainWindow.webContents.send(
-        PROCESS_LOG,
-        passMessage(
-            `starting and external process with entry: ${subprocess.entry}`,
-        ),
-    );
+    taskRunner.enqueue(strategy);
 }
 
 function onTerminateSubprocessHandler(): void {
