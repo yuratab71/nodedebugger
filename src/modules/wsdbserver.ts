@@ -12,11 +12,11 @@ export class WS {
     private readonly webSocket: WebSocket;
     private readonly MAX_RETRIES = 3;
     private readonly RETRY_DELAY = 50;
-    url: string;
     status = Status.NOT_ACTIVE;
     private pendingRequests: Map<string | undefined, DebuggingResponse>;
 
     static #instance: WS;
+    static #connstr: string;
     static instance(params: WsInitParams) {
         if (!WS.#instance) {
             WS.#instance = new WS(params);
@@ -25,14 +25,17 @@ export class WS {
         return WS.#instance;
     }
 
+    static setConnstr(connStr: string) {
+        console.log(`received string: ${connStr}`);
+        WS.#connstr = connStr;
+    }
+
     private constructor({
-        url,
         onStatusUpdateCallback,
         onMessageCallback,
     }: WsInitParams) {
         this.pendingRequests = new Map();
-        this.url = url;
-        this.webSocket = new WebSocket(this.url);
+        this.webSocket = new WebSocket(WS.#connstr);
 
         this.webSocket.on("error", () => {
             console.error;

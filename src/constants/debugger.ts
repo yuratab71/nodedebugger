@@ -1,2 +1,5 @@
 export const DEFAULT_CONNECTION_PATH = "ws://127.0.0.1:9229/";
+export const DEFAULT_SETTINGS_PATH = "http://127.0.0.1:9229/json";
+export const FETCH_DEBUGGER_SETTINGS_MAX_RETRY = 5;
+export const FETCH_DEBUGGER_SETTINGS_DELAY = 50; //ms
 export const MEMORY_USAGE_UPDATE_DELAY = 2000;

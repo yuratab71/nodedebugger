@@ -35,12 +35,11 @@ import { Logger, passMessage } from "./modules/logger";
 import Subprocess from "./modules/subprocess";
 import { WS } from "./modules/wsdbserver";
 import { LocationByUrl } from "./types/debugger";
-import { detectConnectionString } from "./utils/connmatch";
 import { StartSubprocessTask } from "./strategies/startSubprocessStrategyTask";
 import { TaskQueueRunner } from "./modules/taskQueueRunner";
+import { GetConnectionStringTask } from "./strategies/getConnectionStringStrategyTask";
 
 let detectedUrl = "";
-let shouldDetectUrl = true;
 let platform: NodeJS.Platform;
 
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
@@ -226,13 +225,18 @@ async function onSetDirectoryHandler(): Promise<void> {
 }
 
 function onStartSubprocessHandler(): void {
-    const strategy = new StartSubprocessTask({
+    const startTask = new StartSubprocessTask({
         mainWindow,
         fileManager,
         subprocess,
     });
 
-    taskRunner.enqueue(strategy);
+    const getConnStrTask = new GetConnectionStringTask({
+        ws,
+    });
+
+    taskRunner.enqueue(startTask);
+    taskRunner.enqueue(getConnStrTask);
 }
 
 function onTerminateSubprocessHandler(): void {

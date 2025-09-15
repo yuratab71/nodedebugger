@@ -40,3 +40,15 @@ export type DebuggingResponse = {
         sourceMapURL?: string;
     };
 };
+
+export type JsonDebuggerInfo = {
+    description: string;
+    devtoolsFrontendUrl: string;
+    devtoolsFrontendUrlCompat: string;
+    faviconUrl: string;
+    id: string;
+    title: string;
+    type: string;
+    url: string;
+    webSocketDebuggerUrl: string;
+};
