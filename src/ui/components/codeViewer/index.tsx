@@ -1,7 +1,13 @@
 import { JSX, useRef, useState } from "react";
 import { LocationByUrl } from "../../../types/debugger";
 import styled from "styled-components";
-import { Button } from "../common/button";
+import { ContextMenu } from "../common/contextActionMenu";
+import { useContextMenu } from "../hooks/useContextMenu";
+
+type MenuItem = {
+    label: string;
+    onClick: () => void;
+};
 
 const CodeViewerWrapper = styled.div`
     border-style: solid;
@@ -45,6 +51,26 @@ export const CodeViewerUIComponent: React.FC<CodeViewerUIComponentProps> = ({
 }: CodeViewerUIComponentProps): JSX.Element => {
     const preRef = useRef<HTMLPreElement | null>(null);
     const [hoverPos, setHoverPosition] = useState<Position>();
+    const { menu, handleContextMenu, hideMenu } = useContextMenu();
+
+    const onClickBtn = () => {
+        if (hoverPos?.line && hoverPos.column) {
+            const loc: LocationByUrl = {
+                url: url,
+                lineNumber: hoverPos.line,
+                columnNumber: hoverPos.column,
+            };
+            window.electronAPI.setBreakpointByUrl(loc);
+        }
+    };
+
+    const menuItems: MenuItem[] = [
+        { label: "Set Breakpoint", onClick: onClickBtn },
+        { label: "📋 Copy", onClick: () => alert("copy") },
+        { label: "✨ Highlight", onClick: () => alert("Highlight clicked") },
+        { label: "🔍 Search", onClick: () => alert("Search clicked") },
+        { label: "🗑 Delete", onClick: () => alert("Delete clicked") },
+    ];
 
     const handleMouse = (e: React.MouseEvent) => {
         if (!preRef.current) return;
@@ -74,21 +100,8 @@ export const CodeViewerUIComponent: React.FC<CodeViewerUIComponentProps> = ({
 
         setHoverPosition({ line, column: col });
     };
-
-    const onClickBtn = () => {
-        console.log("sending the hover pos");
-        if (hoverPos?.line && hoverPos.column) {
-            const loc: LocationByUrl = {
-                url: url,
-                lineNumber: hoverPos.line,
-                columnNumber: hoverPos.column,
-            };
-            window.electronAPI.setBreakpointByUrl(loc);
-        }
-    };
-
     return (
-        <CodeViewerWrapper id="code">
+        <CodeViewerWrapper onContextMenu={handleContextMenu} id="code">
             <TextPre ref={preRef} onMouseMove={handleMouse}>
                 {text}
             </TextPre>
@@ -97,7 +110,8 @@ export const CodeViewerUIComponent: React.FC<CodeViewerUIComponentProps> = ({
                     Line: {hoverPos.line} Column: {hoverPos.column}
                 </div>
             )}
-            <Button text="set brk" onClick={onClickBtn} />
+
+            <ContextMenu state={menu} items={menuItems} onClose={hideMenu} />
         </CodeViewerWrapper>
     );
 };
