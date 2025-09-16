@@ -11,10 +11,8 @@ declare global {
         electronAPI: {
             startProcess: () => void;
             terminateProcess: () => void;
-            connectWebSocket: () => void;
             resumeExecution: () => void;
             getScriptSource: () => void;
-            enableDebugger: () => void;
             setBreakpoint: () => void;
             setBreakpointByUrl: (data: LocationByUrl) => void;
             setWsStatus: (callback: (string) => void) => void;

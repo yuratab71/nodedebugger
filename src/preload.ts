@@ -2,7 +2,6 @@ import { contextBridge, ipcRenderer } from "electron";
 import {
     PROCESS_LOG,
     RESUME_EXECUTION,
-    CONNECT_TO_DEBUGGER,
     SET_MEMORY_USAGE,
     SET_WS_STATUS,
     START_SUBPROCESS,
@@ -11,7 +10,6 @@ import {
     GET_FILE_STRUCTURE,
     GET_FILE_CONTENT,
     GET_SCRIPT_SOURCE,
-    DEBUGGER_ENABLE,
     SET_BREAKPOINT_BY_URL,
     SET_BREAKPOINT,
     GET_ROOT_DIR,
@@ -26,10 +24,8 @@ const Window: Pick<Window, "electronAPI"> = {
     electronAPI: {
         startProcess: () => ipcRenderer.send(START_SUBPROCESS),
         terminateProcess: () => ipcRenderer.send(TERMINATE_SUBPROCESS),
-        connectWebSocket: () => ipcRenderer.send(CONNECT_TO_DEBUGGER),
         resumeExecution: () => ipcRenderer.send(RESUME_EXECUTION),
         getScriptSource: () => ipcRenderer.send(GET_SCRIPT_SOURCE),
-        enableDebugger: () => ipcRenderer.send(DEBUGGER_ENABLE),
         setBreakpoint: () => ipcRenderer.send(SET_BREAKPOINT),
         setBreakpointByUrl: (data: LocationByUrl) => {
             ipcRenderer.send(SET_BREAKPOINT_BY_URL, data);

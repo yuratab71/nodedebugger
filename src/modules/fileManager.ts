@@ -227,14 +227,14 @@ export class FileManager {
     getOriginUrl(url: string): string | null {
         for (let i = 0; i < this.parsedFiles.length; i++) {
             this.logger.group(this.parsedFiles[i]?.sources);
-           if (this.parsedFiles[i]?.sources?.includes(url)) {
+            if (this.parsedFiles[i]?.sources?.includes(url)) {
+                this.logger.log(
+                    "detect the source file for given url, creating source map",
+                );
 
-                this.logger.log("detect the source file for given url, creating source map");
-
-
-                    this.logger.group(this.parsedFiles[i]?.sourceMap);
-            };
-        };
+                this.logger.group(this.parsedFiles[i]?.sourceMap);
+            }
+        }
 
         return null;
     }

@@ -7,8 +7,6 @@ import {
     IpcMainInvokeEvent,
 } from "electron";
 import {
-    CONNECT_TO_DEBUGGER,
-    DEBUGGER_ENABLE,
     GET_FILE_CONTENT,
     GET_FILE_STRUCTURE,
     GET_SOURCE_MAP,
@@ -40,7 +38,6 @@ import { TaskQueueRunner } from "./modules/taskQueueRunner";
 import { GetConnectionStringTask } from "./strategies/getConnectionStringStrategyTask";
 import { EnableDebuggerTask } from "./strategies/enableDebuggerStrategy";
 
-let detectedUrl = "";
 let platform: NodeJS.Platform;
 
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
@@ -190,13 +187,11 @@ ipcMain.on(SET_DIRECTORY, onSetDirectoryHandler);
 
 ipcMain.on(START_SUBPROCESS, onStartSubprocessHandler);
 ipcMain.on(TERMINATE_SUBPROCESS, onTerminateSubprocessHandler);
-ipcMain.on(CONNECT_TO_DEBUGGER, onConnectToDebuggerHandler);
 ipcMain.on(SET_WS_STATUS, onSetWsStatusHandler);
 
 ipcMain.handle(GET_FILE_CONTENT, onGetFileContentHandler);
 ipcMain.handle(GET_FILE_STRUCTURE, onGetFileStructureHandler);
 ipcMain.handle(GET_SOURCE_MAP, onGetSourceMapHandler);
-ipcMain.on(DEBUGGER_ENABLE, onDebuggerEnableHandler);
 ipcMain.on(SET_BREAKPOINT, onSetBreakpoint);
 ipcMain.on(SET_BREAKPOINT_BY_URL, onSetBreakpointByUrlHandler);
 ipcMain.on(RESUME_EXECUTION, onDebuggerResumeHandler);
@@ -262,6 +257,7 @@ async function onStartSubprocessHandler(): Promise<void> {
 
     await taskRunner.enqueue(
         new EnableDebuggerTask({ debuggerDomain, runtimeDomain, ws }),
+    );
 }
 
 function onTerminateSubprocessHandler(): void {
@@ -279,31 +275,6 @@ function onTerminateSubprocessHandler(): void {
     }
 }
 
-function onConnectToDebuggerHandler(_: IpcMainEvent, connstr: string): void {
-    let connectionString;
-    if (!connstr) {
-        connectionString = detectedUrl;
-    } else {
-        connectionString = connstr;
-    }
-    logger.log(
-        `Connecting to debugger with ${connectionString} and isAlreadyAttached ${WS.isConnected()}`,
-    );
-    if (!WS.isConnected()) {
-        ws = WS.instance({
-            onStatusUpdateCallback: sendStatus,
-            onMessageCallback: processWebSocketMessageCallback,
-        });
-        runtimeDomain = new RuntimeDomain(ws);
-        debuggerDomain = new DebuggerDomain(ws);
-    } else {
-        mainWindow.webContents.send(
-            PROCESS_LOG,
-            passMessage("Debugger already attached"),
-        );
-    }
-}
-
 function onSetWsStatusHandler(_: IpcMainEvent, status: string): void {
     mainWindow.webContents.send(SET_WS_STATUS, status);
 }
@@ -317,13 +288,6 @@ function onGetFileStructureHandler(_: IpcMainInvokeEvent, src: string) {
     if (fileManager?.main) return fileManager.getDirectoryContent(src);
 
     return [];
-}
-
-function onDebuggerEnableHandler() {
-    debuggerDomain.enable(Ids.DEBUGGER.ENABLE);
-    runtimeDomain.runIfWaitingForDebugger(
-        Ids.RUNTIME.RUN_IF_WAITING_FOR_DEBUGGER,
-    );
 }
 
 function onDebuggerResumeHandler() {
