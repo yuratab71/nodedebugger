@@ -97,7 +97,6 @@ export class WS {
 
     send(message: string): void {
         this.webSocket.send(message);
-        // TODO: add possibility to send messages and receive response and notify the caller of its success or failure
     }
 
     async sendAndReceive(
@@ -114,6 +113,7 @@ export class WS {
                     const resp = this.pendingRequests.get(id.toString());
                     if (resp) {
                         resolve(resp);
+                        this.pendingRequests.delete(id.toString());
                         isResolved = true;
                     }
                 }, this.RETRY_DELAY);

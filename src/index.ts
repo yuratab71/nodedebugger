@@ -144,15 +144,13 @@ const processWebSocketMessageCallback = (message: DebuggingResponse) => {
             case Ids.DEBUGGER.SET_BREAKPOINT_BY_URL:
                 logger.log("set breakpoint by url response");
                 logger.group(message);
-                break;
+                return;
             default:
                 return;
         }
     }
 
     if (message.method) {
-        // let scriptId;
-        // const p = "files:" + fileManager.dir + "/\dist";
         switch (message.method) {
             case DebuggerEvents.PAUSED:
                 logger.log("received pause method response");
@@ -163,12 +161,10 @@ const processWebSocketMessageCallback = (message: DebuggingResponse) => {
                 break;
             case DebuggerEvents.SCRIPT_PARSED:
                 if (!message.params?.url) break;
-                // CONTINUE somewhere here
                 if (
                     message?.params?.url.includes("nest_app/\dist") &&
                     message?.params?.sourceMapURL
                 ) {
-                    // logger.log(message.params.url);
                     fileManager.registerParsedFile(
                         message.params.url,
                         message.params?.sourceMapURL,
@@ -246,7 +242,6 @@ async function onStartSubprocessHandler(): Promise<void> {
         });
         runtimeDomain = new RuntimeDomain(ws);
         debuggerDomain = new DebuggerDomain(ws);
-        logger.log(ws.url);
     } else {
         mainWindow.webContents.send(
             PROCESS_LOG,
@@ -309,8 +304,20 @@ function onGetSourceMapHandler(_: IpcMainInvokeEvent, src: string) {
     return fileManager.evaluateSourceMap(src);
 }
 
-function onSetBreakpointByUrlHandler(_: IpcMainEvent, loc: LocationByUrl) {
-    const ou = fileManager.getOriginUrl(loc.url);
-    logger.log(`Original url: ${ou}`);
-    debuggerDomain.setBreakpointByUrl(Ids.DEBUGGER.SET_BREAKPOINT_BY_URL, loc);
+async function onSetBreakpointByUrlHandler(
+    _: IpcMainEvent,
+    loc: LocationByUrl,
+) {
+    const origLoc = fileManager.getOriginLocation(loc);
+
+    if (origLoc != null) {
+        loc = origLoc;
+    }
+
+    await debuggerDomain.setBreakpointByUrl(
+        Ids.DEBUGGER.SET_BREAKPOINT_BY_URL,
+        loc,
+    );
+
+    return;
 }

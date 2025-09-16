@@ -5,6 +5,7 @@ import { SourceMapConsumer } from "source-map-js";
 import { PackageJson, TsConfigJson } from "type-fest";
 import { Logger } from "./logger";
 import { SourceMap } from "../types/sourceMap";
+import { LocationByUrl } from "../types/debugger";
 
 export type Entry = {
     path: string;
@@ -185,9 +186,6 @@ export class FileManager {
             normalizedPath = origin;
         }
 
-        this.logger.log("originla: " + origin);
-        this.logger.log("normalized: " + normalizedPath);
-
         let isFileParsed = false;
 
         for (let i = 0; i < this.parsedFiles.length; i++) {
@@ -224,15 +222,32 @@ export class FileManager {
         return null;
     }
 
-    getOriginUrl(url: string): string | null {
+    getOriginLocation(loc: LocationByUrl): LocationByUrl | null {
+        let normalizedPath;
+        if (process.platform === "win32") {
+            normalizedPath = this.normalizeForPOSIXpath(loc.url);
+        } else {
+            normalizedPath = loc.url;
+        }
         for (let i = 0; i < this.parsedFiles.length; i++) {
-            this.logger.group(this.parsedFiles[i]?.sources);
-            if (this.parsedFiles[i]?.sources?.includes(url)) {
-                this.logger.log(
-                    "detect the source file for given url, creating source map",
-                );
+            if (this.parsedFiles[i]?.sources?.includes(normalizedPath)) {
+                const entry = this.parsedFiles[i];
+                if (entry && entry.sourceMap != null) {
+                    const smconsumer = new SourceMapConsumer(entry.sourceMap);
 
-                this.logger.group(this.parsedFiles[i]?.sourceMap);
+                    const pos = smconsumer.originalPositionFor({
+                        line: loc.lineNumber,
+                        column: loc.columnNumber,
+                    });
+
+                    return {
+                        url: entry.path,
+                        lineNumber: pos.line,
+                        columnNumber: pos.column,
+                    };
+                } else {
+                    return null;
+                }
             }
         }
 

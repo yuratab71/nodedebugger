@@ -31,7 +31,7 @@ export class Logger {
     }
 
     group(obj: any): void {
-        console.log("//");
+        console.log(`// object from: ${this.name}`);
         console.log(obj);
         console.log("\/\/");
     }

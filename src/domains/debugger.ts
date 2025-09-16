@@ -109,9 +109,7 @@ export class DebuggerDomain {
     }
 
     async setBreakpointByUrl(id: number, loc: LocationByUrl): Promise<void> {
-        this.logger.log(`url: ${loc.url}`);
-        this.logger.group(loc);
-        const result = await this.ws.sendAndReceive(
+        await this.ws.sendAndReceive(
             id,
             this.buildMessage({
                 id: id,
@@ -121,8 +119,6 @@ export class DebuggerDomain {
                 columnNumber: loc.columnNumber,
             }),
         );
-
-        this.logger.group(result);
     }
 
     setBreakpoint(id: number, scriptId: string): void {
