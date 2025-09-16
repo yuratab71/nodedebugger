@@ -1,9 +1,10 @@
 import { Status } from "../constants/status";
 import { RawData, WebSocket } from "ws";
 import { DebuggingResponse } from "../types/debugger";
+import { Logger } from "./logger";
 
 type WsInitParams = {
-    url: string;
+    url?: string;
     onStatusUpdateCallback: (status: Status) => void;
     onMessageCallback: (msg: DebuggingResponse) => void;
 };
@@ -12,13 +13,18 @@ export class WS {
     private readonly webSocket: WebSocket;
     private readonly MAX_RETRIES = 3;
     private readonly RETRY_DELAY = 50;
+    private logger: Logger;
+    url: string;
     status = Status.NOT_ACTIVE;
     private pendingRequests: Map<string | undefined, DebuggingResponse>;
 
     static #instance: WS;
     static #connstr: string;
-    static instance(params: WsInitParams) {
-        if (!WS.#instance) {
+    static instance(params?: WsInitParams) {
+        if (
+            (!WS.#instance && !!params) ||
+            (!!params && params?.url != WS.#connstr)
+        ) {
             WS.#instance = new WS(params);
         }
 
@@ -34,20 +40,28 @@ export class WS {
         onStatusUpdateCallback,
         onMessageCallback,
     }: WsInitParams) {
+        this.logger = new Logger("WS");
         this.pendingRequests = new Map();
-        this.webSocket = new WebSocket(WS.#connstr);
+
+        this.logger.log(`connstr: ${WS.#connstr}`);
+        this.url = WS.#connstr;
+
+        this.logger.log(`url: ${this.url}`);
+        this.webSocket = new WebSocket(this.url);
 
         this.webSocket.on("error", () => {
-            console.error;
-            onStatusUpdateCallback(Status.ERROR);
+            this.status = Status.ERROR;
+            onStatusUpdateCallback(this.status);
         });
 
         this.webSocket.on("open", () => {
-            onStatusUpdateCallback(Status.CONNECTED);
+            this.status = Status.CONNECTED;
+            onStatusUpdateCallback(this.status);
         });
 
         this.webSocket.on("close", () => {
-            onStatusUpdateCallback(Status.DISCONNECTED);
+            this.status = Status.DISCONNECTED;
+            onStatusUpdateCallback(this.status);
         });
 
         this.webSocket.on("message", (data: RawData) => {
@@ -66,8 +80,19 @@ export class WS {
 
         return WS.#instance;
     }
-    static isConnected(): boolean {
-        return WS.#instance?.webSocket?.readyState === WebSocket.OPEN;
+    static isConnected(url?: string): boolean {
+        const instance = WS.instance();
+
+        if (url && instance?.url != url) return false;
+
+        if (instance?.url) {
+            return (
+                WS.#instance?.webSocket?.readyState === WebSocket.OPEN &&
+                instance.url === WS.#connstr
+            );
+        }
+
+        return false;
     }
 
     send(message: string): void {

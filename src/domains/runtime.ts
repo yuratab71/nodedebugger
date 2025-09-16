@@ -27,8 +27,11 @@ export class RuntimeDomain {
         this.ws.send(this.getMsg(id, this.ENABLE));
     }
 
-    runIfWaitingForDebugger(id: number): void {
-        this.ws.send(this.getMsg(id, this.RUN_IF_WAITING_FOR_DEBUGGER));
+    async runIfWaitingForDebugger(id: number): Promise<void> {
+        await this.ws.sendAndReceive(
+            id,
+            this.getMsg(id, this.RUN_IF_WAITING_FOR_DEBUGGER),
+        );
     }
 
     private evaluate(id: number, expression: string) {

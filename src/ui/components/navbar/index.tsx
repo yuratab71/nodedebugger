@@ -73,19 +73,6 @@ export const NavbarUIComponent: React.FC<NavbarUIComponentProps> = ({
         window.electronAPI.terminateProcess();
     };
 
-    const connectToDebuggingServer = () => {
-        window.electronAPI.connectWebSocket();
-    };
-
-    const enableDebugger = () => {
-        console.log("Clicked");
-        window.electronAPI.enableDebugger();
-    };
-
-    const setBrk = () => {
-        window.electronAPI.setBreakpoint();
-    };
-
     const resumeExecution = () => {
         window.electronAPI.resumeExecution();
     };
@@ -126,13 +113,7 @@ export const NavbarUIComponent: React.FC<NavbarUIComponentProps> = ({
                 <FilePickerUIComponent />
                 <Button text={"Start Subprocess"} onClick={handleStart} />
                 <Button text={"Terminate Subprocess"} onClick={handleKill} />
-                <Button
-                    text={"Connect debugger"}
-                    onClick={connectToDebuggingServer}
-                />
-                <Button text="Enable debugger??" onClick={enableDebugger} />
                 <Button text="Resume" onClick={resumeExecution} />
-                <Button text="Set brk" onClick={setBrk} />
             </NavbarMenuBlock>
         </NavbarWrapper>
     );

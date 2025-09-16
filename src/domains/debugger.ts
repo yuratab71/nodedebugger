@@ -71,9 +71,11 @@ export class DebuggerDomain {
         this.logger.log("get id: " + this.debuggerId);
     }
 
-    enable(id: number): void {
-        this.logger.log("send enable");
-        this.ws.send(this.buildMessage({ id, method: this.ENABLE }));
+    async enable(id: number): Promise<void> {
+        await this.ws.sendAndReceive(
+            id,
+            this.buildMessage({ id, method: this.ENABLE }),
+        );
     }
 
     getScriptSource(id: number, scriptId: string): void {

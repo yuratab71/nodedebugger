@@ -38,6 +38,7 @@ import { LocationByUrl } from "./types/debugger";
 import { StartSubprocessTask } from "./strategies/startSubprocessStrategyTask";
 import { TaskQueueRunner } from "./modules/taskQueueRunner";
 import { GetConnectionStringTask } from "./strategies/getConnectionStringStrategyTask";
+import { EnableDebuggerTask } from "./strategies/enableDebuggerStrategy";
 
 let detectedUrl = "";
 let platform: NodeJS.Platform;
@@ -224,19 +225,43 @@ async function onSetDirectoryHandler(): Promise<void> {
     logger.log("Unable to detect directory");
 }
 
-function onStartSubprocessHandler(): void {
-    const startTask = new StartSubprocessTask({
-        mainWindow,
-        fileManager,
-        subprocess,
-    });
+async function onStartSubprocessHandler(): Promise<void> {
+    if (!Subprocess.isRunning()) {
+        const startTask = new StartSubprocessTask({
+            mainWindow,
+            fileManager,
+            subprocess,
+        });
 
-    const getConnStrTask = new GetConnectionStringTask({
-        ws,
-    });
+        const getConnStrTask = new GetConnectionStringTask({
+            ws,
+        });
 
-    taskRunner.enqueue(startTask);
-    taskRunner.enqueue(getConnStrTask);
+        await taskRunner.enqueue(startTask);
+        await taskRunner.enqueue(getConnStrTask);
+    }
+    // all initialization goes in this file
+    // all tasks goes in strategies and queue
+    if (!WS.isConnected(ws?.url)) {
+        logger.log("initializing the ws");
+        ws = WS.instance({
+            url: ws?.url,
+            onStatusUpdateCallback: sendStatus,
+            onMessageCallback: processWebSocketMessageCallback,
+        });
+        runtimeDomain = new RuntimeDomain(ws);
+        debuggerDomain = new DebuggerDomain(ws);
+        logger.log(ws.url);
+    } else {
+        mainWindow.webContents.send(
+            PROCESS_LOG,
+            passMessage("Debugger already attached"),
+        );
+    }
+    //
+
+    await taskRunner.enqueue(
+        new EnableDebuggerTask({ debuggerDomain, runtimeDomain, ws }),
 }
 
 function onTerminateSubprocessHandler(): void {
@@ -266,7 +291,6 @@ function onConnectToDebuggerHandler(_: IpcMainEvent, connstr: string): void {
     );
     if (!WS.isConnected()) {
         ws = WS.instance({
-            url: connectionString,
             onStatusUpdateCallback: sendStatus,
             onMessageCallback: processWebSocketMessageCallback,
         });
