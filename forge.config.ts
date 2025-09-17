@@ -7,9 +7,7 @@ import { AutoUnpackNativesPlugin } from "@electron-forge/plugin-auto-unpack-nati
 import { WebpackPlugin } from "@electron-forge/plugin-webpack";
 import { FusesPlugin } from "@electron-forge/plugin-fuses";
 import { FuseV1Options, FuseVersion } from "@electron/fuses";
-
-import { mainConfig } from "./webpack.main.config";
-import { rendererConfig } from "./webpack.renderer.config";
+import { VitePlugin } from "@electron-forge/plugin-vite";
 
 const config: ForgeConfig = {
     packagerConfig: {
@@ -24,21 +22,28 @@ const config: ForgeConfig = {
     ],
     plugins: [
         new AutoUnpackNativesPlugin({}),
-        new WebpackPlugin({
-            mainConfig,
-            renderer: {
-                config: rendererConfig,
-                entryPoints: [
-                    {
-                        html: "./src/index.html",
-                        js: "./src/renderer.ts",
-                        name: "main_window",
-                        preload: {
-                            js: "./src/preload.ts",
-                        },
-                    },
-                ],
-            },
+        new VitePlugin({
+            // `build` can specify multiple entry builds, which can be Main process, Preload scripts, Worker process, etc.
+            // If you are familiar with Vite configuration, it will look really familiar.
+            build: [
+                {
+                    // `entry` is just an alias for `build.lib.entry` in the corresponding file of `config`.
+                    entry: "src/main/main.ts",
+                    config: "vite.main.config.ts",
+                    target: "main",
+                },
+                {
+                    entry: "src/preload/preload.ts",
+                    config: "vite.preload.config.ts",
+                    target: "preload",
+                },
+            ],
+            renderer: [
+                {
+                    name: "main_window",
+                    config: "vite.renderer.config.ts",
+                },
+            ],
         }),
         // Fuses are used to enable/disable various Electron functionality
         // at package time, before code signing the application

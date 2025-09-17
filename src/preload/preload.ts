@@ -16,9 +16,9 @@ import {
     ON_ROOT_DIR_RESOLVE,
     ON_FILE_STRUCTURE_RESOLVE,
     GET_SOURCE_MAP,
-} from "./constants/commands";
-import { Entry } from "./modules/fileManager";
-import { DebuggingResponse, LocationByUrl } from "./types/debugger";
+} from "../main/constants/commands";
+import { Entry } from "../main/modules/fileManager";
+import { DebuggingResponse, LocationByUrl } from "../main/types/debugger";
 
 const Window: Pick<Window, "electronAPI"> = {
     electronAPI: {
@@ -38,7 +38,10 @@ const Window: Pick<Window, "electronAPI"> = {
             ipcRenderer.on(SET_MEMORY_USAGE, (_, data) => callback(data));
         },
         onProcessLog: (callback: (msg: string) => void) =>
-            ipcRenderer.on(PROCESS_LOG, (_, msg) => callback(msg)),
+            ipcRenderer.on(PROCESS_LOG, (_, msg) => {
+                console.log("pushing message to ui: " + msg);
+                callback(msg);
+            }),
         onRootDirResolve: (callback: (rootDir: string) => void) =>
             ipcRenderer.on(ON_ROOT_DIR_RESOLVE, (_, rootDir) =>
                 callback(rootDir),

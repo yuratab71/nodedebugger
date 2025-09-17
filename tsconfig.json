@@ -1,14 +1,13 @@
 {
   "compilerOptions": {
-    "target": "ES6",
+    "target": "ESNext",
     "allowJs": false,
     "module": "commonjs",
+    "lib": ["ESNext", "DOM"],
     "skipLibCheck": true,
     "esModuleInterop": true,
-    "noImplicitAny": true,
     "sourceMap": true,
     "baseUrl": ".",
-    "outDir": "dist",
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "strict": true,
@@ -27,16 +26,16 @@
     "noUnusedParameters": true,
     "noUncheckedIndexedAccess": true,
     "useUnknownInCatchVariables": true,
-    "exactOptionalPropertyTypes": true,
     "noPropertyAccessFromIndexSignature": true,
     "allowUnusedLabels": false, 
     "allowUnreachableCode": false,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
     "jsx": "react-jsx",
     "paths": {
-      "*": ["node_modules/*"]
-    }
+      "@renderer/*": ["src/renderer/*"],
+      "@main/*": ["src/main/*"],
+      "@preload/*": ["src/preload/*"]
+    },
+    "types": ["vite/client", "@types/node"],
   },
-  "include": ["src/**/*"]
+  "include": ["src"]
 }

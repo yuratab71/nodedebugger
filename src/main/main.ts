@@ -37,11 +37,12 @@ import { StartSubprocessTask } from "./strategies/startSubprocessStrategyTask";
 import { TaskQueueRunner } from "./modules/taskQueueRunner";
 import { GetConnectionStringTask } from "./strategies/getConnectionStringStrategyTask";
 import { EnableDebuggerTask } from "./strategies/enableDebuggerStrategy";
+import path from "path";
 
 let platform: NodeJS.Platform;
 
-declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
-declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
+// declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
+// declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
 
 // Inti all required modules ====================
 // eslint-disable-next-line
@@ -79,11 +80,20 @@ const createWindow = (): void => {
         height: 760,
         width: 1024,
         webPreferences: {
-            preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
+            preload: path.join(__dirname, "preload.js"),
         },
     });
 
-    mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
+    if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
+        mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
+    } else {
+        mainWindow.loadFile(
+            path.join(
+                __dirname,
+                `../renderer/${MAIN_WINDOW_VITE_NAME}index.html`,
+            ),
+        );
+    }
 
     sendStatus(Status.NOT_ACTIVE);
 

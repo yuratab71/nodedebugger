@@ -1,6 +1,6 @@
 import React, { JSX } from "react";
 import styled from "styled-components";
-import { Status } from "../../../constants/status";
+import { Status } from "../../../main/constants/status";
 import { Button } from "../common/button";
 import { FilePickerUIComponent } from "../common/filePicker";
 const NavbarWrapper = styled.div`
