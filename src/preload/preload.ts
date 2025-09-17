@@ -39,7 +39,6 @@ const Window: Pick<Window, "electronAPI"> = {
         },
         onProcessLog: (callback: (msg: string) => void) =>
             ipcRenderer.on(PROCESS_LOG, (_, msg) => {
-                console.log("pushing message to ui: " + msg);
                 callback(msg);
             }),
         onRootDirResolve: (callback: (rootDir: string) => void) =>

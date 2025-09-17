@@ -6,6 +6,7 @@ export default defineConfig({
         rollupOptions: {
             external: ["electron", "ws", "bufferutil", "utf-8-validate"],
         },
+        watch: {},
     },
     optimizeDeps: { exclude: ["ws", "bufferutil", "utf-8-validate"] },
 });
