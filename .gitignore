@@ -1,5 +1,8 @@
 .external/
 
+#pnpm lock
+pnpm-lock.yaml
+
 # Logs
 logs
 *.log
