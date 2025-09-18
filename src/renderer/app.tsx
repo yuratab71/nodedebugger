@@ -1,14 +1,18 @@
-import { useEffect, useState } from "react";
-import { Status } from "../main/constants/status";
-import { MemoryValue } from "../main/types/debugger";
-import { NavbarUIComponent } from "./components/navbar";
-import { CodeVisualizerUIComponent } from "./components/codeVisualizer";
-import styled from "styled-components";
+import React from "react";
+import { AppWrapper } from "./appWrapper.component";
+import { NqLogs } from "./components/nqLogs/nquisitorLogs.component";
 
-const AppWrapper = styled.div`
-    overflow: hidden;
-`;
+export default class App extends React.Component {
+    override render(): React.ReactNode {
+        return (
+            <AppWrapper>
+                <NqLogs />
+            </AppWrapper>
+        );
+    }
+}
 
+/*
 export default function App() {
     const [logs, setLogs] = useState<string[]>([]);
     const [wsStatus, setWsstatus] = useState(Status.NOT_ACTIVE);
@@ -67,3 +71,4 @@ export default function App() {
         </AppWrapper>
     );
 }
+*/
