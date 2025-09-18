@@ -1,13 +1,9 @@
-import React, { JSX } from "react";
+/* import React, { JSX } from "react";
 import styled from "styled-components";
 import { Status } from "../../../main/constants/status";
 import { Button } from "../common/button";
 import { FilePickerUIComponent } from "../common/filePicker";
-const NavbarWrapper = styled.div`
-    display: flex;
-    min-height: 80px;
-    flex-direction: row;
-`;
+import "./index.css";
 
 const Info = styled.div`
     font-size: 16;
@@ -78,7 +74,7 @@ export const NavbarUIComponent: React.FC<NavbarUIComponentProps> = ({
     };
 
     return (
-        <NavbarWrapper>
+        <div className="navbar-wrapper">
             <Info>
                 <Logo>Nquisitor</Logo>
                 <InfoBlock>
@@ -115,6 +111,80 @@ export const NavbarUIComponent: React.FC<NavbarUIComponentProps> = ({
                 <Button text={"Terminate Subprocess"} onClick={handleKill} />
                 <Button text="Resume" onClick={resumeExecution} />
             </NavbarMenuBlock>
-        </NavbarWrapper>
+        </div>
     );
-};
+}; */
+
+import { Component, ReactNode } from "react";
+import { AppBar, Toolbar, IconButton, Typography, Button } from "@mui/material";
+import MenuIcon from "@mui/icons-material/Menu";
+
+interface NavbarProps {}
+interface NavbarState {}
+
+export class Navbar extends Component<NavbarProps, NavbarState> {
+    constructor(props: NavbarProps) {
+        super(props);
+    }
+
+    onClickRun() {
+        window.electronAPI.startProcess();
+    }
+
+    onClickKill() {
+        window.electronAPI.terminateProcess();
+    }
+
+    onClickResume() {
+        window.electronAPI.resumeExecution();
+    }
+
+    onClickOpen() {
+        window.electronAPI.setSubprocessDirectory();
+    }
+    override render(): ReactNode {
+        return (
+            <AppBar position="static">
+                <Toolbar>
+                    <IconButton
+                        edge="start"
+                        aria-label="menu"
+                        color="inherit"
+                        sx={{ mr: 2 }}>
+                        <MenuIcon />
+                    </IconButton>
+                    <Typography
+                        variant="h6"
+                        component="div"
+                        sx={{ flexGrow: 1 }}>
+                        Nquisitor
+                    </Typography>
+                    <Button
+                        color="inherit"
+                        variant="outlined"
+                        onClick={this.onClickOpen}>
+                        Open
+                    </Button>
+                    <Button
+                        color="inherit"
+                        variant="outlined"
+                        onClick={this.onClickRun}>
+                        Run
+                    </Button>{" "}
+                    <Button
+                        color="inherit"
+                        variant="outlined"
+                        onClick={this.onClickKill}>
+                        Kill
+                    </Button>
+                    <Button
+                        color="inherit"
+                        variant="outlined"
+                        onClick={this.onClickResume}>
+                        Resume
+                    </Button>
+                </Toolbar>
+            </AppBar>
+        );
+    }
+}
