@@ -1,11 +1,13 @@
-import { BottomNavigation, BottomNavigationAction } from "@mui/material";
+import { Typography, Box } from "@mui/material";
 import { Component, ReactNode } from "react";
-import RestoreIcon from "@mui/icons-material/Restore";
-import FavoriteIcon from "@mui/icons-material/Favorite";
-import LocationOnIcon from "@mui/icons-material/LocationOn";
+import { Status } from "../../../main/constants/status";
+import { MemoryValue } from "../../../main/types/debugger";
 
 interface FooterProps {}
-interface FoterState {}
+interface FoterState {
+    memoryStats: MemoryValue;
+    wsStatus: Status;
+}
 
 export default class Footer extends Component<FooterProps, FoterState> {
     constructor(props: FooterProps) {
@@ -14,22 +16,29 @@ export default class Footer extends Component<FooterProps, FoterState> {
 
     override render(): ReactNode {
         return (
-            <>
-                <BottomNavigation>
-                    <BottomNavigationAction
-                        label="Recents"
-                        icon={<RestoreIcon />}
-                    />
-                    <BottomNavigationAction
-                        label="Favorites"
-                        icon={<FavoriteIcon />}
-                    />
-                    <BottomNavigationAction
-                        label="Nearby"
-                        icon={<LocationOnIcon />}
-                    />
-                </BottomNavigation>
-            </>
+            <Box
+                sx={{
+                    position: "sticky",
+                    bottom: 0,
+                    width: "100%",
+                    borderTop: "1px solid",
+                    borderColor: "divider",
+                    p: 1,
+                    backgroundColor: "grey",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    zIndex: 10000,
+                }}>
+                <Typography fontSize="12px">
+                    Nquisitor the NodeJS debugger
+                </Typography>
+
+                <Typography fontSize="12px">Powered by Electron</Typography>
+                <Typography fontWeight="bold" fontSize="12px">
+                    v 0.0.1
+                </Typography>
+            </Box>
         );
     }
 }

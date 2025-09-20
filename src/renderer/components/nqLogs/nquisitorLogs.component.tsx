@@ -10,10 +10,6 @@ export class NqLogs extends Component<NqLogsProps, NqLogsState> {
     }
 
     override render(): ReactNode {
-        return (
-            <>
-                <LogTerminal onLogs={window.electronAPI.onProcessLog} />
-            </>
-        );
+        return <LogTerminal onLogs={window.electronAPI.onProcessLog} />;
     }
 }

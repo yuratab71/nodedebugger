@@ -29,6 +29,7 @@ declare global {
             getFileContent: (src: string) => Promise<any>;
             getSourceMap: (src: string) => Promise<SourceMapConsumer | null>;
             getRootDir: (callback: (rootDir: string) => void) => void;
+            onParsedFilesUpdate: (callback: (entry: Entry) => void) => void;
         };
     }
 }

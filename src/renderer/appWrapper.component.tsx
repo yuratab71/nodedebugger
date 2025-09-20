@@ -1,68 +1,48 @@
 import { ThemeProvider } from "@emotion/react";
-import {
-    CssBaseline,
-    Drawer,
-    List,
-    ListItemButton,
-    ListItemText,
-    Toolbar,
-} from "@mui/material";
+import { CssBaseline } from "@mui/material";
 import { Box } from "@mui/system";
 import { Component, ReactNode } from "react";
 import { theme } from "./theme";
-import { Navbar } from "./components/navbar";
 import Footer from "./components/footer/footer.component";
+import { Header } from "./components/header//header.component";
 
 interface AppWrapperProps {
     children: ReactNode;
 }
 
-interface AppWrapperState {
-    drawerOpen: boolean;
-}
+interface AppWrapperState {}
 
 export class AppWrapper extends Component<AppWrapperProps, AppWrapperState> {
     constructor(props: AppWrapperProps) {
         super(props);
-        this.state = { drawerOpen: false };
     }
-
-    toggleDrawer = () => {
-        this.setState((prevState) => ({ drawerOpen: !prevState.drawerOpen }));
-    };
 
     override render(): ReactNode {
         const { children } = this.props;
-        const { drawerOpen } = this.state;
 
         return (
             <ThemeProvider theme={theme}>
-                <CssBaseline />
-                <Navbar />
-                {false && (
-                    <Drawer
-                        onClose={this.toggleDrawer}
-                        variant="permanent"
-                        open={drawerOpen}>
-                        <Toolbar />
-                        <List>
-                            <ListItemButton>
-                                <ListItemText primary="Home" />
-                            </ListItemButton>
-                        </List>
-                    </Drawer>
-                )}
-
                 <Box
-                    component={"main"}
                     sx={{
-                        flexGrow: 1,
-                        p: 3,
+                        width: "100%",
+                        minHeight: "100vh",
+                        border: "1px solid",
+                        display: "flex",
+                        flexDirection: "column",
                     }}>
-                    {" "}
-                    {children}{" "}
+                    <CssBaseline />
+                    <Header />
+
+                    <Box
+                        component={"main"}
+                        sx={{
+                            flexGrow: 1,
+                            width: "100%",
+                        }}>
+                        {children}
+                    </Box>
+                    <Footer />
                 </Box>
-                <Footer />
             </ThemeProvider>
         );
     }
