@@ -46,7 +46,8 @@ export class LogTerminal extends Component<LogTerminalProps, LogTerminalState> {
                     color: "lime",
                     fontFamily: "monospace",
                     p: 1,
-                    height: 200,
+                    height: "100%",
+                    width: "100%",
                     overflowY: "auto",
                     borderRadius: 1,
                 }}>

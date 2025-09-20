@@ -1,74 +1,76 @@
-import React from "react";
+import { Component } from "react";
+import { Box } from "@mui/material";
 import { AppWrapper } from "./appWrapper.component";
-import { NqLogs } from "./components/nqLogs/nquisitorLogs.component";
+import { FileExplorer } from "./components/fileExplorer/fileExlorer.component";
+import { Editor } from "./components/editor/editor.component";
+import { Stats } from "./components/stats/stats.components";
 
-export default class App extends React.Component {
+interface AppProps {}
+interface AppState {
+    editorValue: string;
+    pos: {
+        line: number;
+        col: number;
+    };
+    selectedEntry: string;
+}
+
+export default class App extends Component<AppProps, AppState> {
+    constructor(props: AppProps) {
+        super(props);
+        this.state = {
+            editorValue: "",
+            selectedEntry: "",
+            pos: {
+                line: 0,
+                col: 0,
+            },
+        };
+    }
+
+    onFileClick = async (url: string) => {
+        if (url === this.state.selectedEntry) return;
+        console.log("fileclick");
+        const value = await window.electronAPI.getFileContent(url);
+        this.setState((prevState) => ({
+            ...prevState,
+            selectedEntry: url,
+            editorValue: value,
+        }));
+    };
+
+    onPosChange = (line: number, col: number) => {
+        this.setState((prevState) => ({
+            ...prevState,
+            pos: {
+                line,
+                col,
+            },
+        }));
+    };
+
+    onSetBreakpointByUrl = () => {
+        console.log("here");
+        window.electronAPI.setBreakpointByUrl({
+            url: this.state.selectedEntry,
+            lineNumber: this.state.pos.line,
+            columnNumber: this.state.pos.col,
+        });
+    };
+
     override render(): React.ReactNode {
         return (
             <AppWrapper>
-                <NqLogs />
+                <Box display="flex" alignItems="center" margin={0} padding={0}>
+                    <FileExplorer onClick={this.onFileClick} />
+                    <Editor
+                        onSetBreakpointByUrl={this.onSetBreakpointByUrl}
+                        onPosChange={this.onPosChange}
+                        value={this.state.editorValue}
+                    />
+                    <Stats pos={this.state.pos} />
+                </Box>
             </AppWrapper>
         );
     }
 }
-
-/*
-export default function App() {
-    const [logs, setLogs] = useState<string[]>([]);
-    const [wsStatus, setWsstatus] = useState(Status.NOT_ACTIVE);
-
-    const [memoryUsage, setMemoryUsage] = useState<MemoryValue | null>(null);
-    const [rootDir, setRootDir] = useState<string>("");
-    let i = 0;
-    useEffect(() => {
-        try {
-            window.electronAPI.onProcessLog((msg) => {
-                console.log(i);
-                setLogs((prev) => [...prev, msg.trim()]);
-                i++;
-            });
-
-            window.electronAPI.setWsStatus((status) => {
-                setWsstatus(status);
-            });
-            window.electronAPI.setMemoryUsage((data) => {
-                setMemoryUsage(data?.result?.result?.value);
-            });
-
-            window.electronAPI.onRootDirResolve((dir) => {
-                setRootDir(dir);
-            });
-        } catch (e) {
-            console.error(e);
-        }
-    }, []);
-
-    return (
-        <AppWrapper>
-            <div>
-                <NavbarUIComponent
-                    status={wsStatus}
-                    rss={memoryUsage?.rss}
-                    heapTotal={memoryUsage?.heapTotal}
-                    heapUsed={memoryUsage?.heapUsed}
-                    external={memoryUsage?.external}
-                />
-                <div>
-                    <CodeVisualizerUIComponent rootDir={rootDir} />
-                </div>
-                <pre
-                    style={{
-                        background: "#111",
-                        color: "#0f0",
-                        padding: "1em",
-                        marginTop: "1em",
-                        height: 300,
-                        overflowY: "scroll",
-                    }}>
-                    {logs.join("\n")}
-                </pre>
-            </div>
-        </AppWrapper>
-    );
-}
-*/

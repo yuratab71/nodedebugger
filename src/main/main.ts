@@ -12,15 +12,16 @@ import {
     GET_SOURCE_MAP,
     ON_FILE_STRUCTURE_RESOLVE,
     ON_ROOT_DIR_RESOLVE,
-    PROCESS_LOG,
-    RESUME_EXECUTION,
-    SET_BREAKPOINT,
+    ON_PROCESS_LOG_UPDATE,
+    RUN_RESUME_EXECUTION,
+    SET_BREAKPOINT_BY_SCRIPT_ID,
     SET_BREAKPOINT_BY_URL,
     SET_DIRECTORY,
-    SET_MEMORY_USAGE,
-    SET_WS_STATUS,
-    START_SUBPROCESS,
-    TERMINATE_SUBPROCESS,
+    ON_MEMORY_USAGE_UPDATE,
+    ON_WS_CONNECTION_STATUS_UPDATE,
+    RUN_START_SUBPROCESS,
+    RUN_TERMINATE_SUBPROCESS,
+    ON_PARSED_FILES_UPDATE,
 } from "./constants/commands";
 import { MEMORY_USAGE_UPDATE_DELAY } from "./constants/debugger";
 import { Ids } from "./constants/debuggerMessageIds";
@@ -70,7 +71,7 @@ if (require("electron-squirrel-startup")) {
 
 const sendStatus = (st: Status) => {
     status = st;
-    mainWindow.webContents.send(SET_WS_STATUS, status);
+    mainWindow.webContents.send(ON_WS_CONNECTION_STATUS_UPDATE, status);
 };
 
 const createWindow = (): void => {
@@ -79,6 +80,7 @@ const createWindow = (): void => {
     mainWindow = new BrowserWindow({
         height: 760,
         width: 1024,
+        icon: path.join(__dirname, "../../public/icon.ico"),
         webPreferences: {
             preload: path.join(__dirname, "preload.js"),
         },
@@ -137,7 +139,7 @@ const processWebSocketMessageCallback = (message: DebuggingResponse) => {
     if (message.id) {
         switch (message.id) {
             case Ids.RUNTIME.GET_MEMORY_USAGE:
-                mainWindow.webContents.send(SET_MEMORY_USAGE, message);
+                mainWindow.webContents.send(ON_MEMORY_USAGE_UPDATE, message);
                 break;
             case Ids.DEBUGGER.ENABLE:
                 logger.log("debugger enable response: ");
@@ -165,7 +167,7 @@ const processWebSocketMessageCallback = (message: DebuggingResponse) => {
             case DebuggerEvents.PAUSED:
                 logger.log("received pause method response");
                 mainWindow.webContents.send(
-                    PROCESS_LOG,
+                    ON_PROCESS_LOG_UPDATE,
                     `debugger paused, reason: ${message.params?.reason}`,
                 );
                 break;
@@ -175,10 +177,11 @@ const processWebSocketMessageCallback = (message: DebuggingResponse) => {
                     message?.params?.url.includes("nest_app/\dist") &&
                     message?.params?.sourceMapURL
                 ) {
-                    fileManager.registerParsedFile(
+                    const entry = fileManager.registerParsedFile(
                         message.params.url,
                         message.params?.sourceMapURL,
                     );
+                    mainWindow.webContents.send(ON_PARSED_FILES_UPDATE, entry);
                 }
                 break;
             default:
@@ -191,16 +194,16 @@ const processWebSocketMessageCallback = (message: DebuggingResponse) => {
 // parse directory where project located
 ipcMain.on(SET_DIRECTORY, onSetDirectoryHandler);
 
-ipcMain.on(START_SUBPROCESS, onStartSubprocessHandler);
-ipcMain.on(TERMINATE_SUBPROCESS, onTerminateSubprocessHandler);
-ipcMain.on(SET_WS_STATUS, onSetWsStatusHandler);
+ipcMain.on(RUN_START_SUBPROCESS, onStartSubprocessHandler);
+ipcMain.on(RUN_TERMINATE_SUBPROCESS, onTerminateSubprocessHandler);
+ipcMain.on(ON_WS_CONNECTION_STATUS_UPDATE, onSetWsStatusHandler);
 
 ipcMain.handle(GET_FILE_CONTENT, onGetFileContentHandler);
 ipcMain.handle(GET_FILE_STRUCTURE, onGetFileStructureHandler);
 ipcMain.handle(GET_SOURCE_MAP, onGetSourceMapHandler);
-ipcMain.on(SET_BREAKPOINT, onSetBreakpoint);
+ipcMain.on(SET_BREAKPOINT_BY_SCRIPT_ID, onSetBreakpoint);
 ipcMain.on(SET_BREAKPOINT_BY_URL, onSetBreakpointByUrlHandler);
-ipcMain.on(RESUME_EXECUTION, onDebuggerResumeHandler);
+ipcMain.on(RUN_RESUME_EXECUTION, onDebuggerResumeHandler);
 
 async function onSetDirectoryHandler(): Promise<void> {
     const result = await dialog.showOpenDialog({
@@ -254,7 +257,7 @@ async function onStartSubprocessHandler(): Promise<void> {
         debuggerDomain = new DebuggerDomain(ws);
     } else {
         mainWindow.webContents.send(
-            PROCESS_LOG,
+            ON_PROCESS_LOG_UPDATE,
             passMessage("Debugger already attached"),
         );
     }
@@ -268,20 +271,20 @@ async function onStartSubprocessHandler(): Promise<void> {
 function onTerminateSubprocessHandler(): void {
     if (Subprocess.isRunning()) {
         mainWindow.webContents.send(
-            PROCESS_LOG,
+            ON_PROCESS_LOG_UPDATE,
             passMessage("terminating the process"),
         );
         Subprocess.kill();
     } else {
         mainWindow.webContents.send(
-            PROCESS_LOG,
+            ON_PROCESS_LOG_UPDATE,
             passMessage("process isnt running"),
         );
     }
 }
 
 function onSetWsStatusHandler(_: IpcMainEvent, status: string): void {
-    mainWindow.webContents.send(SET_WS_STATUS, status);
+    mainWindow.webContents.send(ON_WS_CONNECTION_STATUS_UPDATE, status);
 }
 
 function onGetFileContentHandler(_: IpcMainInvokeEvent, src: string): string {

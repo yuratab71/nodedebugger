@@ -134,7 +134,7 @@ export class FileManager {
         return "Not a file, maybe a folder\n";
     }
 
-    registerParsedFile(url: string, sourceMapUrl: string): void {
+    registerParsedFile(url: string, sourceMapUrl: string): Entry {
         const fp = path.parse(url.slice(8));
         const sm = this.ecstrackInlineSourceMap(sourceMapUrl);
 
@@ -152,6 +152,7 @@ export class FileManager {
         this.logger.group(file);
         this.parsedFiles.push(file);
         this.logger.log(`Parsed: ${this.parsedFiles.length}`);
+        return file;
     }
 
     getDirectoryContent(dir: string) {
