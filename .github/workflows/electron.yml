@@ -1,0 +1,39 @@
+name: Build Electron App
+
+on:
+  push:
+    branches: 
+        - master
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setupd-node@v3
+        with:
+         node-version: 24.0.6
+         cache: 'pnpm'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 10.17.0
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Run Build
+        run: pnpm exec electron-builder --windows nsis:ia32
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: electron-build-${{ matrix.os }}
+          path: out/
