@@ -2,6 +2,7 @@
 dist/
 #pnpm lock
 pnpm-lock.yaml
+yarn.lock
 
 # Logs
 logs
