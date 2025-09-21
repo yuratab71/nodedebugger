@@ -10,7 +10,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows-latest]
+        os: [ubuntu-latest]
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -34,7 +34,7 @@ jobs:
         run: pnpm package
 
       - name: Run Build
-        run: pnpm exec electron-builder --windows nsis:ia32
+        run: pnpm exec electron-builder --linux deb tar.xz
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
