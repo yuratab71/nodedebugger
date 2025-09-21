@@ -10,7 +10,7 @@
         "make": "electron-forge make",
         "publish": "electron-forge publish",
         "lint": "eslint --ext .ts,.tsx .",
-        "preinstall": "npx only-allow pnpm"
+        "preinstall": "npx only-allow yarn"
     },
     "build": {
         "appId": "your.id",
