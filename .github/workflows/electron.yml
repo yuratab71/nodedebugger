@@ -16,7 +16,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Setup Node.js
-        uses: actions/setupd-node@v3
+        uses: actions/setup-node@v5
         with:
          node-version: 24.0.6
          cache: 'pnpm'
@@ -33,7 +33,7 @@ jobs:
         run: pnpm exec electron-builder --windows nsis:ia32
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: electron-build-${{ matrix.os }}
           path: out/
