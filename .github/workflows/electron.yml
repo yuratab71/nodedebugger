@@ -30,6 +30,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      - name: Run Package
+        run: pnpm package
 
       - name: Run Build
         run: pnpm exec electron-builder --windows nsis:ia32
