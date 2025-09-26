@@ -57,6 +57,15 @@ const config: ForgeConfig = {
             [FuseV1Options.OnlyLoadAppFromAsar]: true,
         }),
     ],
+    hooks: {
+        postPackage: async (forgeConfig, options) => {
+            console.log("postPackage done");
+            setTimeout(() => {
+                console.log("Force exit");
+                process.exit(0);
+            }, 500);
+        },
+    },
 };
 
 export default config;
