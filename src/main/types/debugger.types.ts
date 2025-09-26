@@ -137,7 +137,7 @@ export namespace DebuggerMethods {
 
 export namespace DebuggerEvents {
     export type Paused = {
-        callFrame: Debugger.CallFrame;
+        callFrames: Debugger.CallFrame[];
         reason:
             | "ambiguous"
             | "assert"

@@ -231,6 +231,13 @@ export namespace Runtime {
         maxDepth?: number;
         additionalParameters?: Object;
     };
+
+    export type MemoryStats = {
+        rss: number;
+        heapTotal: number;
+        heapUsed: number;
+        external: number;
+    };
 }
 
 export namespace RuntimeMethods {

@@ -1,4 +1,4 @@
-import { Entry } from "@main/modules/fileManager";
+import { Entry } from "../../../main/types/fileManager.types";
 import { RichTreeView, TreeViewBaseItem } from "@mui/x-tree-view";
 import { Box } from "@mui/material";
 import { Component, ReactNode, SyntheticEvent } from "react";
@@ -30,7 +30,7 @@ export class FileExplorer extends Component<
                 id: entry.path,
                 label: "@/" + entry.name + entry.extension,
                 children: [
-                    ...sources.map((el) => {
+                    ...sources.map((el: string) => {
                         return {
                             id: el,
                             label: el,

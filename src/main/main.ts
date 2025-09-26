@@ -174,6 +174,8 @@ const processWebSocketMessageCallback = (message: InspectorMessage) => {
         switch (message.method) {
             case DebuggerEvents.PAUSED:
                 logger.log("received pause method response");
+                logger.group(message, "pause result");
+                logger.group(message?.params?.callFrames, "call frame");
                 mainWindow.webContents.send(
                     ON_PROCESS_LOG_UPDATE,
                     `debugger paused, reason: ${message.params?.reason}`,
@@ -182,7 +184,7 @@ const processWebSocketMessageCallback = (message: InspectorMessage) => {
             case DebuggerEvents.SCRIPT_PARSED:
                 if (!message.params?.url) break;
                 if (
-                    message?.params?.url.includes("nest_app/\dist") &&
+                    !message?.params?.url.includes("node_modules") &&
                     message?.params?.sourceMapURL
                 ) {
                     const entry = fileManager.registerParsedFile(

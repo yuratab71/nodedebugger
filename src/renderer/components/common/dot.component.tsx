@@ -1,5 +1,5 @@
-import { Status } from "@main/constants/status";
-import { Box, Typography } from "@mui/material";
+import { Status } from "../../../main/constants/status";
+import { Typography } from "@mui/material";
 import { Component, ReactNode } from "react";
 
 interface DotProps {

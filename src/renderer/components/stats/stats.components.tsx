@@ -1,5 +1,5 @@
 import { Typography } from "@mui/material";
-import { Box, breakpoints } from "@mui/system";
+import { Box } from "@mui/system";
 import { RichTreeView, TreeViewBaseItem } from "@mui/x-tree-view";
 import { Component, ReactNode } from "react";
 

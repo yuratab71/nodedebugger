@@ -116,6 +116,7 @@ export class FileManager {
     }
 
     registerParsedFile(url: string, sourceMapUrl: string): Entry {
+        this.logger.log("registering a parsed file");
         const fp = path.parse(url.slice(8));
         const sm = this.ecstrackInlineSourceMap(sourceMapUrl);
 

@@ -1,11 +1,11 @@
 import { Typography, Box } from "@mui/material";
 import { Component, ReactNode } from "react";
 import { Status } from "../../../main/constants/status";
-import { MemoryValue } from "../../../main/types/debugger";
+import { Runtime } from "../../../main/types/runtime.types";
 
 interface FooterProps {}
 interface FoterState {
-    memoryStats: MemoryValue;
+    memoryStats: Runtime.MemoryStats;
     wsStatus: Status;
 }
 

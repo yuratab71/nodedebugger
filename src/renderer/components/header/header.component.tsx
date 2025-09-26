@@ -2,7 +2,7 @@ import { Component, ReactNode } from "react";
 import { Avatar, Box, Button, Paper, Typography } from "@mui/material";
 import MainLogo from "../../../../public/Main_logo.png";
 import { NqLogs } from "../nqLogs/nquisitorLogs.component";
-import { Status } from "@main/constants/status";
+import { Status } from "../../../main/constants/status";
 import { Dot } from "../common/dot.component";
 
 interface NavbarProps {}
