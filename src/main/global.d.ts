@@ -24,6 +24,11 @@ type Error = {
     };
 };
 
+type Event<R> = {
+    method: string;
+    params: R;
+};
+
 declare global {
     interface Window {
         electronAPI: {

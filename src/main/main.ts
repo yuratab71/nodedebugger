@@ -40,6 +40,7 @@ import { TaskQueueRunner } from "./modules/taskQueueRunner";
 import { GetConnectionStringTask } from "./strategies/getConnectionStringStrategyTask";
 import { EnableDebuggerTask } from "./strategies/enableDebuggerStrategy";
 import path from "path";
+import { InspectorMessage } from "./types/message.types";
 
 let platform: NodeJS.Platform;
 
@@ -134,7 +135,7 @@ app.on("activate", () => {
     }
 });
 
-const processWebSocketMessageCallback = (message: DebuggingResponse) => {
+const processWebSocketMessageCallback = (message: InspectorMessage) => {
     if (message.id) {
         switch (message.id) {
             case Ids.RUNTIME.GET_MEMORY_USAGE:

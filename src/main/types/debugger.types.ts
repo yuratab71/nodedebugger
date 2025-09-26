@@ -134,3 +134,54 @@ export namespace DebuggerMethods {
     export const GET_SCRIPT_SOURCE = "Debugger.getScriptSource";
     export const SET_BREAKPOINT_BY_URL = "Debugger.setBreakpointByUrl";
 }
+
+export namespace DebuggerEvents {
+    export type Paused = {
+        callFrame: Debugger.CallFrame;
+        reason:
+            | "ambiguous"
+            | "assert"
+            | "CSPViolation"
+            | "debugCommand"
+            | "DOM"
+            | "EventListener"
+            | "exception"
+            | "instrumentation"
+            | "OOM"
+            | "other"
+            | "promiseRejection"
+            | "XHR"
+            | "step";
+        data: Object;
+        hitBreakpoints?: string[];
+        asyncStackTrace?: Runtime.StackTrace;
+        asyncStackTraceId?: Runtime.StackTraceId;
+        asyncCallStackId?: Runtime.StackTraceId; // deprecated in V8 inspector protocol
+    };
+
+    export type Resumed = {};
+
+    export type ScriptParsed = {
+        scriptId: Runtime.ScriptId;
+        url: string;
+        startLine: number;
+        startColumn: number;
+        endLine: number;
+        endColumn: number;
+        executionContextId: Runtime.ExecutionContextId;
+        hash: string;
+        buildId: string;
+        executionContextAuxData?: Object;
+        isLiveEdit?: boolean;
+        sourceMapURL?: string;
+        hasSourceURL?: boolean;
+        isModule?: boolean;
+        length?: boolean;
+        stackTrace?: Runtime.StackTrace;
+        codeOffset?: number;
+        scriptLanguage?: Debugger.ScriptLanguage;
+        debugSymbols?: Debugger.DebugSymbols[];
+        embedderName?: string;
+        resolvedBreakpoints?: Debugger.ResolvedBreakpoint[];
+    };
+}
