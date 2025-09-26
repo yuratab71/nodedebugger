@@ -2,9 +2,27 @@ import { DebuggingResponse } from "./modules/debuggigmessages";
 import { Entry } from "./modules/fileManager";
 import fs from "fs";
 import { SourceMapConsumer } from "source-map-js";
-import { LocationByUrl } from "./types/debugger";
+import { Breakpoint, LocationByUrl } from "./types/debugger";
 
-export {};
+type Result<R> = {
+    id: number;
+    result: R;
+};
+
+type Parameters<P> = {
+    id: number;
+    method: string;
+    params?: P;
+};
+
+type Error = {
+    id: number;
+    error: {
+        code: number;
+        message: string;
+        data: string;
+    };
+};
 
 declare global {
     interface Window {
@@ -30,6 +48,8 @@ declare global {
             getSourceMap: (src: string) => Promise<SourceMapConsumer | null>;
             getRootDir: (callback: (rootDir: string) => void) => void;
             onParsedFilesUpdate: (callback: (entry: Entry) => void) => void;
+            onRegisterBreakpoint: (callback: (brk: Breakpoint) => void) => void;
+            getObjectId: (name: string) => Promise<any>;
         };
     }
 }

@@ -22,6 +22,8 @@ import {
     RUN_START_SUBPROCESS,
     RUN_TERMINATE_SUBPROCESS,
     ON_PARSED_FILES_UPDATE,
+    ON_REGISTER_BREAKPOINT,
+    GET_OBJECT_ID,
 } from "./constants/commands";
 import { MEMORY_USAGE_UPDATE_DELAY } from "./constants/debugger";
 import { Ids } from "./constants/debuggerMessageIds";
@@ -156,6 +158,14 @@ const processWebSocketMessageCallback = (message: DebuggingResponse) => {
             case Ids.DEBUGGER.SET_BREAKPOINT_BY_URL:
                 logger.log("set breakpoint by url response");
                 logger.group(message);
+                if (message.result?.breakpointId) {
+                    debuggerDomain.registerBreakpoint(
+                        message.result?.breakpointId,
+                    );
+                    mainWindow.webContents.send(ON_REGISTER_BREAKPOINT, {
+                        id: message.result?.breakpointId,
+                    });
+                }
                 return;
             default:
                 return;
@@ -201,9 +211,17 @@ ipcMain.on(ON_WS_CONNECTION_STATUS_UPDATE, onSetWsStatusHandler);
 ipcMain.handle(GET_FILE_CONTENT, onGetFileContentHandler);
 ipcMain.handle(GET_FILE_STRUCTURE, onGetFileStructureHandler);
 ipcMain.handle(GET_SOURCE_MAP, onGetSourceMapHandler);
+ipcMain.handle(GET_OBJECT_ID, onGetObjectIdHandler);
 ipcMain.on(SET_BREAKPOINT_BY_SCRIPT_ID, onSetBreakpoint);
 ipcMain.on(SET_BREAKPOINT_BY_URL, onSetBreakpointByUrlHandler);
 ipcMain.on(RUN_RESUME_EXECUTION, onDebuggerResumeHandler);
+
+async function onGetObjectIdHandler(_: IpcMainInvokeEvent, name: string) {
+    const scope = await runtimeDomain.globalLexicalScopeNames();
+    logger.log("scope");
+    logger.group(scope);
+    return await runtimeDomain.evaluateExpression(name);
+}
 
 async function onSetDirectoryHandler(): Promise<void> {
     const result = await dialog.showOpenDialog({

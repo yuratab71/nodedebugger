@@ -2,6 +2,7 @@ import { Status } from "../constants/status";
 import { RawData, WebSocket } from "ws";
 import { DebuggingResponse } from "../types/debugger";
 import { Logger } from "./logger";
+import { Result } from "@main/global";
 
 type WsInitParams = {
     url?: string;
@@ -11,12 +12,12 @@ type WsInitParams = {
 
 export class WS {
     private readonly webSocket: WebSocket;
-    private readonly MAX_RETRIES = 3;
+    private readonly MAX_RETRIES = 3; // TODO: move this to .env file
     private readonly RETRY_DELAY = 50;
     private logger: Logger;
     url: string;
     status = Status.NOT_ACTIVE;
-    private pendingRequests: Map<string | undefined, DebuggingResponse>;
+    private pendingRequests: Map<string | undefined, any>;
 
     static #instance: WS;
     static #connstr: string;
@@ -66,7 +67,7 @@ export class WS {
 
         this.webSocket.on("message", (data: RawData) => {
             try {
-                const resp = JSON.parse(data.toString()) as DebuggingResponse;
+                const resp = JSON.parse(data.toString()) as Result<any>;
                 this.pendingRequests.set(resp.id?.toString(), resp);
                 onMessageCallback(resp);
             } catch (e) {
@@ -80,6 +81,7 @@ export class WS {
 
         return WS.#instance;
     }
+
     static isConnected(url?: string): boolean {
         const instance = WS.instance();
 
@@ -98,15 +100,16 @@ export class WS {
     send(message: string): void {
         this.webSocket.send(message);
     }
-
-    async sendAndReceive(
-        id: number,
-        message: string,
-    ): Promise<DebuggingResponse | null> {
+    /**
+     * Send message and returns the response
+     * @param {number} id - must be passed to function to know which id look in responses
+     * @param {string} message - whole message that is send to inspector, must contain id in it!
+     */
+    async sendAndReceive<T>(id: number, message: string): Promise<T | null> {
         this.send(message);
 
         let isResolved = false;
-        return new Promise<DebuggingResponse | null>((resolve, _) => {
+        return new Promise<T | null>((resolve, _) => {
             for (let i = 0; i < this.MAX_RETRIES; i++) {
                 if (isResolved) return;
                 setTimeout(() => {

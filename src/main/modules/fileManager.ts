@@ -4,32 +4,13 @@ import path from "path";
 import { SourceMapConsumer } from "source-map-js";
 import { PackageJson, TsConfigJson } from "type-fest";
 import { Logger } from "./logger";
-import { SourceMap } from "../types/sourceMap";
-import { LocationByUrl } from "../types/debugger";
-
-export type Entry = {
-    path: string;
-    name: string;
-    isDir: boolean;
-    extension: string;
-    sourceMapUrl?: string;
-    sourceMap: SourceMap | null;
-    sources?: string[] | undefined;
-};
-
-/**
- * Slash for unix-like systems paths
- * @constant
- * @default "/"
- **/
-const POSIX_SEPARATOR = "/";
-
-/**
- * Backslash for windows paths
- * @constant
- * @default "\"
- **/
-const WIN32_SEPARATOR = "\\";
+import { SourceMap } from "../types/sourceMap.types";
+import { LocationByUrl } from "../types/debugger.types";
+import {
+    Entry,
+    POSIX_SEPARATOR,
+    WIN32_SEPARATOR,
+} from "../types/fileManager.types";
 
 /**
  * All V8 url starts with this line
@@ -47,14 +28,13 @@ export type FileManagerInitParams = {
 
 export class FileManager {
     // directory of subprocess, where code is located
-    rootDir: string;
-    srcFileStructure: Entry[];
-    parsedFiles: Entry[];
+    private rootDir: string;
+    private srcFileStructure: Entry[];
+    private parsedFiles: Entry[];
     // main file which is executable, i.g. "main.js"
-    main: string | null;
-    subprocessPackageJson: PackageJson;
-    subprocessTsConfig: TsConfigJson;
-
+    private main: string | null;
+    private subprocessPackageJson: PackageJson;
+    private subprocessTsConfig: TsConfigJson;
     private logger: Logger;
 
     static #instance: FileManager | null;

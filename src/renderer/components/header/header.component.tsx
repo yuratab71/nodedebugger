@@ -56,6 +56,7 @@ export class Header extends Component<NavbarProps, NavbarState> {
                     />
                     <Box
                         flex={1}
+                        maxWidth={1024}
                         sx={{
                             height: "100%",
                         }}>

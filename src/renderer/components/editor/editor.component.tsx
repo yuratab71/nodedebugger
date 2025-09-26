@@ -77,6 +77,7 @@ export class Editor extends Component<EditorProps, EditorState> {
                     flex={1}
                     padding={0}
                     margin={0}
+                    maxWidth={1024}
                     overflow="scroll"
                     fontFamily="monospace"
                     sx={{
@@ -113,6 +114,16 @@ export class Editor extends Component<EditorProps, EditorState> {
                             this.props.onSetBreakpointByUrl();
                         }}>
                         Set Breakpoint
+                    </MenuItem>
+                    <MenuItem
+                        onClick={async () => {
+                            const name =
+                                await window.electronAPI.getObjectId(
+                                    "bootstrap",
+                                );
+                            console.log(name);
+                        }}>
+                        Get Object Id
                     </MenuItem>
                 </Menu>
             </>

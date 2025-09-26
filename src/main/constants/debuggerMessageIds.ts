@@ -2,6 +2,8 @@ export const Ids = {
     RUNTIME: {
         RUN_IF_WAITING_FOR_DEBUGGER: 11,
         GET_MEMORY_USAGE: 12,
+        GLOBAL_LEXICAL_SCOPE_NAMES: 13,
+        EVALUATE_EXPRESSION: 14,
     },
     DEBUGGER: {
         ENABLE: 21,

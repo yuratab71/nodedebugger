@@ -12,12 +12,13 @@ export default class Subprocess {
     private arguments = [
         "--inspect-brk",
         "--max-old-space-size=1024",
-        //        "--trace-gc",
+        "--trace-gc",
     ];
     private envs = {
         PORT: "3030",
     };
-    public entry: string;
+
+    entry: string;
 
     static #instance: Subprocess | null;
     static instance(params: SubprocessInitParams) {
@@ -27,6 +28,7 @@ export default class Subprocess {
 
         return Subprocess.#instance;
     }
+
     private constructor({
         entry,
         onData,

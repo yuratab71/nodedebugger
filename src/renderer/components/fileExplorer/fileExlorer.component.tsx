@@ -1,13 +1,7 @@
 import { Entry } from "@main/modules/fileManager";
-import {
-    RichTreeView,
-    SimpleTreeView,
-    TreeItem,
-    TreeViewBaseItem,
-} from "@mui/x-tree-view";
+import { RichTreeView, TreeViewBaseItem } from "@mui/x-tree-view";
 import { Box } from "@mui/material";
 import { Component, ReactNode, SyntheticEvent } from "react";
-import { v4 as uuid } from "uuid";
 
 interface FileExplorerProps {
     onClick: (url: string) => Promise<void>;
@@ -69,8 +63,9 @@ export class FileExplorer extends Component<
 
     override render(): ReactNode {
         return (
-            <Box width="182px">
+            <Box width="182px" height="90vh">
                 <RichTreeView
+                    sx={{ marginTop: 0 }}
                     onItemClick={this.onItemClick}
                     items={this.state.treeItems}
                 />

@@ -1,5 +1,5 @@
 import { WS } from "../modules/wsdbserver";
-import { Subprocess } from "../modules/subprocess";
+import Subprocess from "../modules/subprocess";
 import { FileManager } from "../modules/fileManager";
 import { DebuggerDomain } from "../domains/debugger";
 import { RuntimeDomain } from "../domains/runtime";

@@ -17,9 +17,15 @@ import {
     ON_FILE_STRUCTURE_RESOLVE,
     GET_SOURCE_MAP,
     ON_PARSED_FILES_UPDATE,
+    ON_REGISTER_BREAKPOINT,
+    GET_OBJECT_ID,
 } from "../main/constants/commands";
 import { Entry } from "../main/modules/fileManager";
-import { DebuggingResponse, LocationByUrl } from "../main/types/debugger";
+import {
+    Breakpoint,
+    DebuggingResponse,
+    LocationByUrl,
+} from "../main/types/debugger";
 
 const Window: Pick<Window, "electronAPI"> = {
     electronAPI: {
@@ -64,6 +70,11 @@ const Window: Pick<Window, "electronAPI"> = {
                 callback(entry),
             );
         },
+        onRegisterBreakpoint: (callback: (brk: Breakpoint) => void) => {
+            console.log("Here on register brk");
+            ipcRenderer.on(ON_REGISTER_BREAKPOINT, (_, brk) => callback(brk));
+        },
+        getObjectId: (name: string) => ipcRenderer.invoke(GET_OBJECT_ID, name),
     },
 };
 

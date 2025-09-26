@@ -30,8 +30,8 @@ export class Logger {
         );
     }
 
-    group(obj: any): void {
-        console.log(`// object from: ${this.name}`);
+    group(obj: any, name: string = "Object: "): void {
+        console.log(`// ${name}: ${this.name}`);
         console.log(obj);
         console.log("\/\/");
     }

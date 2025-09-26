@@ -7,7 +7,7 @@
     "skipLibCheck": true,
     "esModuleInterop": true,
     "sourceMap": true,
-    "baseUrl": ".",
+    "baseUrl": "./",
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "strict": true,
@@ -30,12 +30,10 @@
     "allowUnusedLabels": false, 
     "allowUnreachableCode": false,
     "jsx": "react-jsx",
+    "types": ["vite/client", "@types/node", "./src/main/types"],
     "paths": {
-      "@renderer/*": ["src/renderer/*"],
-      "@main/*": ["src/main/*"],
-      "@preload/*": ["src/preload/*"],
+      "@/*": ["./src/*"],
     },
-    "types": ["vite/client", "@types/node"],
   },
   "include": ["src"]
 }

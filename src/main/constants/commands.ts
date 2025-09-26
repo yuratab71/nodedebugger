@@ -22,3 +22,6 @@ export const GET_SCRIPT_SOURCE = "get_script_source";
 export const RUN_RESUME_EXECUTION = "run_resume_execution";
 export const SET_BREAKPOINT_BY_SCRIPT_ID = "set_breakpoint_by_script_id";
 export const SET_BREAKPOINT_BY_URL = "set_breakpoint_by_url";
+export const ON_REGISTER_BREAKPOINT = "on_register_breakpoint";
+
+export const GET_OBJECT_ID = "get_object_id";
