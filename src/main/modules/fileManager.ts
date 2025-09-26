@@ -5,7 +5,7 @@ import { SourceMapConsumer } from "source-map-js";
 import { PackageJson, TsConfigJson } from "type-fest";
 import { Logger } from "./logger";
 import { SourceMap } from "../types/sourceMap.types";
-import { LocationByUrl } from "../types/debugger.types";
+import { Debugger } from "../types/debugger.types";
 import {
     Entry,
     POSIX_SEPARATOR,
@@ -32,10 +32,11 @@ export class FileManager {
     private srcFileStructure: Entry[];
     private parsedFiles: Entry[];
     // main file which is executable, i.g. "main.js"
-    private main: string | null;
     private subprocessPackageJson: PackageJson;
     private subprocessTsConfig: TsConfigJson;
     private logger: Logger;
+
+    main: string | null;
 
     static #instance: FileManager | null;
 
@@ -203,7 +204,9 @@ export class FileManager {
         return null;
     }
 
-    getOriginLocation(loc: LocationByUrl): LocationByUrl | null {
+    getOriginLocation(
+        loc: Debugger.LocationWithUrl,
+    ): Debugger.LocationWithUrl | null {
         let normalizedPath;
         if (process.platform === "win32") {
             normalizedPath = this.normalizeForPOSIXpath(loc.url);
@@ -218,7 +221,7 @@ export class FileManager {
 
                     const pos = smconsumer.originalPositionFor({
                         line: loc.lineNumber,
-                        column: loc.columnNumber,
+                        column: 0,
                     });
 
                     return {

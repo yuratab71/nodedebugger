@@ -32,6 +32,8 @@ jobs:
       - name: Build
         run: yarn dist
         shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4

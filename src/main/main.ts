@@ -14,7 +14,6 @@ import {
     ON_ROOT_DIR_RESOLVE,
     ON_PROCESS_LOG_UPDATE,
     RUN_RESUME_EXECUTION,
-    SET_BREAKPOINT_BY_SCRIPT_ID,
     SET_BREAKPOINT_BY_URL,
     SET_DIRECTORY,
     ON_MEMORY_USAGE_UPDATE,
@@ -30,12 +29,12 @@ import { Ids } from "./constants/debuggerMessageIds";
 import { Status } from "./constants/status";
 import { DebuggerDomain, DebuggerEvents } from "./domains/debugger";
 import { RuntimeDomain } from "./domains/runtime";
-import { DebuggingResponse } from "./types/debugger";
-import { Entry, FileManager } from "./modules/fileManager";
+import { Entry } from "./types/fileManager.types";
+import { FileManager } from "./modules/fileManager";
 import { Logger, passMessage } from "./modules/logger";
 import Subprocess from "./modules/subprocess";
 import { WS } from "./modules/wsdbserver";
-import { LocationByUrl } from "./types/debugger";
+import { Debugger } from "./types/debugger.types";
 import { StartSubprocessTask } from "./strategies/startSubprocessStrategyTask";
 import { TaskQueueRunner } from "./modules/taskQueueRunner";
 import { GetConnectionStringTask } from "./strategies/getConnectionStringStrategyTask";
@@ -58,8 +57,6 @@ let debuggerDomain: DebuggerDomain;
 let subprocess: Subprocess;
 let fileManager: FileManager;
 // const queueProcessor = QueueProcessor.instance();
-const urls: string[] = [];
-const scriptIds: string[] = [];
 
 let mainWindow: BrowserWindow;
 const logger = new Logger("IPC MAIN");
@@ -212,7 +209,6 @@ ipcMain.handle(GET_FILE_CONTENT, onGetFileContentHandler);
 ipcMain.handle(GET_FILE_STRUCTURE, onGetFileStructureHandler);
 ipcMain.handle(GET_SOURCE_MAP, onGetSourceMapHandler);
 ipcMain.handle(GET_OBJECT_ID, onGetObjectIdHandler);
-ipcMain.on(SET_BREAKPOINT_BY_SCRIPT_ID, onSetBreakpoint);
 ipcMain.on(SET_BREAKPOINT_BY_URL, onSetBreakpointByUrlHandler);
 ipcMain.on(RUN_RESUME_EXECUTION, onDebuggerResumeHandler);
 
@@ -320,24 +316,13 @@ function onDebuggerResumeHandler() {
     debuggerDomain.resume(Ids.DEBUGGER.RESUME);
 }
 
-function onSetBreakpoint() {
-    for (let i = 0; i < urls.length; i++) {
-        logger.log(urls[i]);
-        logger.log(scriptIds[i]);
-    }
-
-    if (fileManager.main && urls[0] && scriptIds[0]) {
-        debuggerDomain.setBreakpoint(Ids.DEBUGGER.SET_BREAKPOINT, scriptIds[0]);
-    }
-}
-
 function onGetSourceMapHandler(_: IpcMainInvokeEvent, src: string) {
     return fileManager.evaluateSourceMap(src);
 }
 
 async function onSetBreakpointByUrlHandler(
     _: IpcMainEvent,
-    loc: LocationByUrl,
+    loc: Debugger.LocationWithUrl,
 ) {
     const origLoc = fileManager.getOriginLocation(loc);
 
