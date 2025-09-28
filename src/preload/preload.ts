@@ -20,12 +20,9 @@ import {
     ON_REGISTER_BREAKPOINT,
     GET_OBJECT_ID,
 } from "../main/constants/commands";
-import { Entry } from "../main/modules/fileManager";
-import {
-    Breakpoint,
-    DebuggingResponse,
-    LocationByUrl,
-} from "../main/types/debugger";
+import { Entry } from "../main/types/fileManager.types";
+import { Debugger } from "../main/types/debugger.types";
+import { Runtime } from "@/main/types/runtime.types";
 
 const Window: Pick<Window, "electronAPI"> = {
     electronAPI: {
@@ -34,7 +31,7 @@ const Window: Pick<Window, "electronAPI"> = {
         resumeExecution: () => ipcRenderer.send(RUN_RESUME_EXECUTION),
         getScriptSource: () => ipcRenderer.send(GET_SCRIPT_SOURCE),
         setBreakpoint: () => ipcRenderer.send(SET_BREAKPOINT_BY_SCRIPT_ID),
-        setBreakpointByUrl: (data: LocationByUrl) => {
+        setBreakpointByUrl: (data: Debugger.LocationWithUrl) => {
             ipcRenderer.send(SET_BREAKPOINT_BY_URL, data);
         },
         setWsStatus: (callback: (status: string) => void) => {
@@ -43,7 +40,7 @@ const Window: Pick<Window, "electronAPI"> = {
             );
         },
         setSubprocessDirectory: () => ipcRenderer.send(SET_DIRECTORY),
-        setMemoryUsage: (callback: (data: DebuggingResponse) => void) => {
+        setMemoryUsage: (callback: (data: Runtime.MemoryStats) => void) => {
             ipcRenderer.on(ON_MEMORY_USAGE_UPDATE, (_, data) => callback(data));
         },
         onProcessLog: (callback: (msg: string) => void) =>
@@ -66,11 +63,16 @@ const Window: Pick<Window, "electronAPI"> = {
         getRootDir: (callback: (rootDir: string) => void) =>
             ipcRenderer.on(GET_ROOT_DIR, (_, rootDir) => callback(rootDir)),
         onParsedFilesUpdate: (callback: (entry: Entry) => void) => {
-            ipcRenderer.on(ON_PARSED_FILES_UPDATE, (_, entry) =>
-                callback(entry),
-            );
+            console.log("PRELOAD");
+            ipcRenderer.on(ON_PARSED_FILES_UPDATE, (_, entry) => {
+                console.log("calling thecallback with entry: ");
+                console.log(entry);
+                callback(entry);
+            });
         },
-        onRegisterBreakpoint: (callback: (brk: Breakpoint) => void) => {
+        onRegisterBreakpoint: (
+            callback: (brk: Debugger.Breakpoint) => void,
+        ) => {
             console.log("Here on register brk");
             ipcRenderer.on(ON_REGISTER_BREAKPOINT, (_, brk) => callback(brk));
         },

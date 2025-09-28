@@ -93,7 +93,10 @@ export class DebuggerDomain {
             this.buildMessage<Debugger.SetBreakpointByUrlParams>({
                 id: id,
                 method: DebuggerMethods.SET_BREAKPOINT_BY_URL,
-                params: { url: "file:" + loc.url, lineNumber: loc.lineNumber },
+                params: {
+                    url: loc.url,
+                    lineNumber: loc.lineNumber - 1,
+                },
             }),
         );
     }

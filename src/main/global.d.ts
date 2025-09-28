@@ -3,6 +3,7 @@ import { Entry } from "./modules/fileManager";
 import fs from "fs";
 import { SourceMapConsumer } from "source-map-js";
 import { Breakpoint, LocationByUrl } from "./types/debugger";
+import { Runtime } from "./types/runtime.types";
 
 type Result<R> = {
     id: number;
@@ -40,7 +41,7 @@ declare global {
             setBreakpointByUrl: (data: LocationByUrl) => void;
             setWsStatus: (callback: (string) => void) => void;
             setMemoryUsage: (
-                callback: (data: DebuggingResponse) => void,
+                callback: (data: Runtime.MemoryStats) => void,
             ) => void;
             setSubprocessDirectory: () => void;
             onProcessLog: (callback: (string) => void) => void;

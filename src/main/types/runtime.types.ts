@@ -25,6 +25,8 @@ export namespace Runtime {
         result: RemoteObject;
         exceptionDetails?: ExceptionDetails;
     };
+
+    export type EvaluateMemoryUsageResult = Runtime.MemoryStats;
     /**
      * js expression that passed to runtime to evaluate, is processed by JSON.stringify before sending
      * */
@@ -169,7 +171,7 @@ export namespace Runtime {
         type: PrimitiveType;
         subtype?: Subtype;
         className?: string;
-        value?: any;
+        value?: any | MemoryStats; // will be extended for more types that returned by evaluation
         unserializableValue?: UnserializableValue;
         description?: string;
         deepSerializedValue?: DeepSerializedValue;

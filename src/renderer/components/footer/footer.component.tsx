@@ -27,7 +27,6 @@ export default class Footer extends Component<FooterProps, FoterState> {
                     backgroundColor: "grey",
                     display: "flex",
                     justifyContent: "space-between",
-                    alignItems: "center",
                     zIndex: 10000,
                 }}>
                 <Typography fontSize="12px">

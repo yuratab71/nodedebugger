@@ -1,6 +1,6 @@
 import { RuntimeDomain } from "../domains/runtime";
 import { DebuggerDomain } from "../domains/debugger";
-import { IStrategy } from "../types/strategy";
+import { IStrategy } from "../types/strategy.types";
 import { Ids } from "../constants/debuggerMessageIds";
 import { WS } from "../modules/wsdbserver";
 import { Status } from "../constants/status";

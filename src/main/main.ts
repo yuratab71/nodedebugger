@@ -118,6 +118,14 @@ const createWindow = (): void => {
             runtimeDomain.getMemoryUsage(Ids.RUNTIME.GET_MEMORY_USAGE);
         }
     }, MEMORY_USAGE_UPDATE_DELAY);
+
+    // crash on exception for debugging purposes
+    process.removeAllListeners("uncaughtException");
+
+    process.on("uncaughtException", (err: Error) => {
+        logger.error(err);
+        process.exit(1);
+    });
 };
 
 app.on("ready", createWindow);
@@ -139,7 +147,10 @@ const processWebSocketMessageCallback = (message: InspectorMessage) => {
     if (message.id) {
         switch (message.id) {
             case Ids.RUNTIME.GET_MEMORY_USAGE:
-                mainWindow.webContents.send(ON_MEMORY_USAGE_UPDATE, message);
+                mainWindow.webContents.send(
+                    ON_MEMORY_USAGE_UPDATE,
+                    message.result.result.value,
+                );
                 break;
             case Ids.DEBUGGER.ENABLE:
                 logger.log("debugger enable response: ");
@@ -166,6 +177,8 @@ const processWebSocketMessageCallback = (message: InspectorMessage) => {
                 }
                 return;
             default:
+                logger.log("Unknown message with id: " + message.id);
+                logger.group(message);
                 return;
         }
     }
@@ -173,9 +186,9 @@ const processWebSocketMessageCallback = (message: InspectorMessage) => {
     if (message.method) {
         switch (message.method) {
             case DebuggerEvents.PAUSED:
-                logger.log("received pause method response");
+                /*logger.log("received pause method response");
                 logger.group(message, "pause result");
-                logger.group(message?.params?.callFrames, "call frame");
+                logger.group(message?.params?.callFrames, "call frame");*/
                 mainWindow.webContents.send(
                     ON_PROCESS_LOG_UPDATE,
                     `debugger paused, reason: ${message.params?.reason}`,
@@ -187,14 +200,20 @@ const processWebSocketMessageCallback = (message: InspectorMessage) => {
                     !message?.params?.url.includes("node_modules") &&
                     message?.params?.sourceMapURL
                 ) {
+                    logger.group(message, "Parsed script test alalalala");
                     const entry = fileManager.registerParsedFile(
                         message.params.url,
                         message.params?.sourceMapURL,
+                        message.params.url,
+                        message.result?.result?.type,
                     );
+                    logger.group(entry, "Entry");
                     mainWindow.webContents.send(ON_PARSED_FILES_UPDATE, entry);
                 }
                 break;
             default:
+                logger.log("Unknown event: " + message.method);
+                logger.group(message);
                 return;
         }
     }

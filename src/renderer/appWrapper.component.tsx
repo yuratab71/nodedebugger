@@ -4,7 +4,7 @@ import { Box } from "@mui/system";
 import { Component, ReactNode } from "react";
 import { theme } from "./theme";
 import Footer from "./components/footer/footer.component";
-import { Header } from "./components/header//header.component";
+import Header from "./components/header/header.component";
 
 interface AppWrapperProps {
     children: ReactNode;
@@ -25,8 +25,7 @@ export class AppWrapper extends Component<AppWrapperProps, AppWrapperState> {
                 <Box
                     sx={{
                         width: "100%",
-                        minHeight: "100vh",
-                        border: "1px solid",
+                        height: "100%",
                         display: "flex",
                         flexDirection: "column",
                     }}>

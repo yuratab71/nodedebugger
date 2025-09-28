@@ -3,11 +3,13 @@ import { RichTreeView, TreeViewBaseItem } from "@mui/x-tree-view";
 import { Box } from "@mui/material";
 import { Component, ReactNode, SyntheticEvent } from "react";
 
+type TreeViewBaseItemExtended = TreeViewBaseItem & { inspectorUrl: string };
+
 interface FileExplorerProps {
-    onClick: (url: string) => Promise<void>;
+    onClick: (url: string, inspectorUrl: string) => Promise<void>;
 }
 interface FileExplorerState {
-    treeItems: TreeViewBaseItem[];
+    treeItems: TreeViewBaseItemExtended[];
 }
 
 export class FileExplorer extends Component<
@@ -22,22 +24,28 @@ export class FileExplorer extends Component<
     }
 
     override componentDidMount() {
+        console.log("File explorer did mount");
         window.electronAPI.onParsedFilesUpdate((entry: Entry) => {
-            const sources = entry.sources;
-            if (!sources?.length) return;
+            console.log("parsed file");
+            console.log(entry);
+            if (!entry.sources?.length) return;
 
-            const treeItem: TreeViewBaseItem = {
+            const treeItem: TreeViewBaseItemExtended = {
                 id: entry.path,
                 label: "@/" + entry.name + entry.extension,
+                inspectorUrl: entry.inspectorUrl,
                 children: [
-                    ...sources.map((el: string) => {
+                    ...entry.sources.map((el: string) => {
                         return {
                             id: el,
                             label: el,
+                            url: entry.path,
+                            inspectorUrl: entry.path,
                         };
                     }),
                 ],
             };
+
             this.setState((prevState) => ({
                 treeItems: [...prevState.treeItems, treeItem],
             }));
@@ -48,8 +56,7 @@ export class FileExplorer extends Component<
         _: SyntheticEvent<Element, Event> | null,
         itemId: string,
     ) => {
-        console.log(this.props);
-        await this.props.onClick(itemId);
+        await this.props.onClick(itemId, itemId);
     };
 
     treeItems: TreeViewBaseItem[] = [];
@@ -58,7 +65,7 @@ export class FileExplorer extends Component<
         _: React.MouseEvent<Element, MouseEvent>,
         itemId: string,
     ) => {
-        this.props.onClick(itemId);
+        this.props.onClick(itemId, itemId);
     };
 
     override render(): ReactNode {

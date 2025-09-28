@@ -60,6 +60,8 @@ export class FileManager {
             const location = path.join(dir, entry);
             result.push({
                 name: entry,
+                inspectorUrl: "",
+                scriptId: "",
                 path: location,
                 isDir: stats.isDirectory(),
                 extension: path.extname(entry),
@@ -115,13 +117,20 @@ export class FileManager {
         return "Not a file, maybe a folder\n";
     }
 
-    registerParsedFile(url: string, sourceMapUrl: string): Entry {
+    registerParsedFile(
+        url: string,
+        sourceMapUrl: string,
+        inspectorUrl: string,
+        scriptId: string,
+    ): Entry {
         this.logger.log("registering a parsed file");
         const fp = path.parse(url.slice(8));
         const sm = this.ecstrackInlineSourceMap(sourceMapUrl);
 
         const file: Entry = {
             path: fp.dir + "/" + fp.name + fp.ext,
+            inspectorUrl,
+            scriptId,
             name: fp.name,
             isDir: false,
             extension: fp.ext,
@@ -131,9 +140,8 @@ export class FileManager {
                 return this.normalizeForPOSIXpath(path.resolve(fp.dir, el));
             }),
         };
-        this.logger.group(file);
         this.parsedFiles.push(file);
-        this.logger.log(`Parsed: ${this.parsedFiles.length}`);
+        this.logger.group(file, "resister parsed file");
         return file;
     }
 
@@ -146,6 +154,8 @@ export class FileManager {
             result.push({
                 name: entry,
                 path: location,
+                inspectorUrl: "",
+                scriptId: "",
                 isDir: stats.isDirectory(),
                 extension: path.extname(entry),
                 sourceMap: null,

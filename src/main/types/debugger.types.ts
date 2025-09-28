@@ -38,6 +38,16 @@ export namespace Debugger {
         locations: Location[];
     };
 
+    export type SetBreakpointByScriptIdParams = {
+        location: Location;
+        condition?: string;
+    };
+
+    export type SetBreakpointByScriptIdResult = {
+        breakpointId: string;
+        actualLocation: Location;
+    };
+
     export type ResumeParams = {
         terminateOnResume?: boolean;
     };

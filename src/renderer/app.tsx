@@ -12,7 +12,8 @@ interface AppState {
         line: number;
         col: number;
     };
-    selectedEntry: string;
+    selectedEntryUrl: string;
+    selectedEntryInspectorUrl: string;
 }
 
 export default class App extends Component<AppProps, AppState> {
@@ -20,7 +21,8 @@ export default class App extends Component<AppProps, AppState> {
         super(props);
         this.state = {
             editorValue: "",
-            selectedEntry: "",
+            selectedEntryUrl: "",
+            selectedEntryInspectorUrl: "",
             pos: {
                 line: 0,
                 col: 0,
@@ -28,13 +30,14 @@ export default class App extends Component<AppProps, AppState> {
         };
     }
 
-    onFileClick = async (url: string) => {
-        if (url === this.state.selectedEntry) return;
+    onFileClick = async (url: string, inspectorUrl: string) => {
+        if (url === this.state.selectedEntryUrl) return;
         console.log("fileclick");
         const value = await window.electronAPI.getFileContent(url);
         this.setState((prevState) => ({
             ...prevState,
-            selectedEntry: url,
+            selectedEntryUrl: url,
+            selectedEntryInspectorUrl: inspectorUrl,
             editorValue: value,
         }));
     };
@@ -52,7 +55,7 @@ export default class App extends Component<AppProps, AppState> {
     onSetBreakpointByUrl = () => {
         console.log("here");
         window.electronAPI.setBreakpointByUrl({
-            url: this.state.selectedEntry,
+            url: "file:///" + this.state.selectedEntryInspectorUrl,
             lineNumber: this.state.pos.line,
             columnNumber: this.state.pos.col,
         });
@@ -61,7 +64,7 @@ export default class App extends Component<AppProps, AppState> {
     override render(): React.ReactNode {
         return (
             <AppWrapper>
-                <Box display="flex" alignItems="center" margin={0} padding={0}>
+                <Box display="flex" margin={0} padding={0}>
                     <FileExplorer onClick={this.onFileClick} />
                     <Editor
                         onSetBreakpointByUrl={this.onSetBreakpointByUrl}

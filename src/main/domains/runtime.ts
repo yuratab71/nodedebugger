@@ -46,13 +46,11 @@ export class RuntimeDomain {
                 id,
                 method: RuntimeMethods.EVALUATE,
                 params: {
-                    expression: "process.getMemoryUsage()",
+                    expression: "process.memoryUsage()",
                     returnByValue: true,
                 },
             }),
         );
-
-        this.logger.log("evaluate memoryUsage has been sent");
     }
 
     async evaluateExpression(
