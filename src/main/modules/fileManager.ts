@@ -5,7 +5,7 @@ import { SourceMapConsumer } from "source-map-js";
 import { PackageJson, TsConfigJson } from "type-fest";
 import { Logger } from "./logger";
 import { SourceMap } from "../types/sourceMap.types";
-import { Debugger } from "../types/debugger.types";
+import { Debugger, DebuggerEvents } from "../types/debugger.types";
 import {
     Entry,
     POSIX_SEPARATOR,
@@ -27,14 +27,13 @@ export type FileManagerInitParams = {
 };
 
 export class FileManager {
-    // directory of subprocess, where code is located
-    private rootDir: string;
+    private readonly logger: Logger;
+    private readonly rootDir: string;
+
     private srcFileStructure: Entry[];
     private parsedFiles: Entry[];
-    // main file which is executable, i.g. "main.js"
     private subprocessPackageJson: PackageJson;
     private subprocessTsConfig: TsConfigJson;
-    private logger: Logger;
 
     main: string | null;
 
@@ -50,6 +49,25 @@ export class FileManager {
 
     static removeInstance(): void {
         FileManager.#instance = null;
+    }
+
+    private constructor({
+        src,
+        onFileStructureResolveCallback,
+    }: FileManagerInitParams) {
+        this.logger = new Logger("FILE MANAGER");
+        this.rootDir = src;
+        this.parsedFiles = [];
+        this.subprocessPackageJson = JSON.parse(
+            fs.readFileSync(path.join(this.rootDir, "package.json"), "utf-8"),
+        );
+        this.subprocessTsConfig = JSON.parse(
+            fs.readFileSync(path.join(this.rootDir, "tsconfig.json"), "utf-8"),
+        );
+        this.main = path.join(this.rootDir, this.resolveMain());
+        this.srcFileStructure = this.resolveDirectoryFiles(src);
+
+        onFileStructureResolveCallback(this.rootDir, this.srcFileStructure);
     }
 
     private resolveDirectoryFiles(dir: string) {
@@ -72,25 +90,6 @@ export class FileManager {
         return result;
     }
 
-    private constructor({
-        src,
-        onFileStructureResolveCallback,
-    }: FileManagerInitParams) {
-        this.logger = new Logger("FILE MANAGER");
-        this.rootDir = src;
-        this.parsedFiles = [];
-        this.subprocessPackageJson = JSON.parse(
-            fs.readFileSync(path.join(this.rootDir, "package.json"), "utf-8"),
-        );
-        this.subprocessTsConfig = JSON.parse(
-            fs.readFileSync(path.join(this.rootDir, "tsconfig.json"), "utf-8"),
-        );
-        this.main = path.join(this.rootDir, this.resolveMain());
-        this.srcFileStructure = this.resolveDirectoryFiles(src);
-
-        onFileStructureResolveCallback(this.rootDir, this.srcFileStructure);
-    }
-
     getPathToMain(): string | null {
         return this.main;
     }
@@ -110,38 +109,46 @@ export class FileManager {
         return path.join(result, "main.js");
     }
 
-    readFile(src: fs.PathLike) {
+    readFile(src: fs.PathLike): string {
         const isFile = fs.lstatSync(src).isFile();
-        if (isFile) return readFileSync(src, { encoding: "utf8" });
+        if (isFile) {
+            const fileContent = readFileSync(src, { encoding: "utf8" });
+            if (fileContent) return fileContent;
+            return "Some error occured during file read";
+        }
 
         return "Not a file, maybe a folder\n";
     }
 
-    registerParsedFile(
-        url: string,
-        sourceMapUrl: string,
-        inspectorUrl: string,
-        scriptId: string,
-    ): Entry {
-        this.logger.log("registering a parsed file");
-        const fp = path.parse(url.slice(8));
-        const sm = this.ecstrackInlineSourceMap(sourceMapUrl);
+    registerParsedFile(scriptParsed: DebuggerEvents.ScriptParsed): Entry {
+        this.logger.log(
+            "registering a parsed file by url: " + scriptParsed.url,
+        );
+        const fp = path.parse(scriptParsed.url.slice(8));
+        let sm: SourceMap | null = null;
+        if (scriptParsed?.sourceMapURL) {
+            sm = this.ecstrackInlineSourceMap(scriptParsed?.sourceMapURL);
+            if (!sm)
+                this.logger.log(
+                    "cannot extract source map, looks like its .js file",
+                );
+        }
 
         const file: Entry = {
             path: fp.dir + "/" + fp.name + fp.ext,
-            inspectorUrl,
-            scriptId,
+            inspectorUrl: scriptParsed.url,
+            scriptId: scriptParsed.scriptId,
             name: fp.name,
             isDir: false,
             extension: fp.ext,
-            sourceMapUrl: sourceMapUrl,
+            sourceMapUrl: scriptParsed?.sourceMapURL ?? "none",
             sourceMap: sm,
             sources: sm?.sources.map((el) => {
                 return this.normalizeForPOSIXpath(path.resolve(fp.dir, el));
             }),
         };
         this.parsedFiles.push(file);
-        this.logger.group(file, "resister parsed file");
+        this.logger.group(file, "registered file");
         return file;
     }
 

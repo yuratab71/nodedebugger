@@ -1,7 +1,7 @@
 import { SourceMap } from "./sourceMap.types";
 
 export type Entry = {
-    path: string;
+    path: string; // actual path from os
     inspectorUrl: string; // url that used in V8 inspector
     scriptId: string; // scriptId that used in V8 inspector
     name: string;

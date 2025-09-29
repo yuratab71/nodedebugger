@@ -62,12 +62,9 @@ const Window: Pick<Window, "electronAPI"> = {
         getSourceMap: (src: string) => ipcRenderer.invoke(GET_SOURCE_MAP, src),
         getRootDir: (callback: (rootDir: string) => void) =>
             ipcRenderer.on(GET_ROOT_DIR, (_, rootDir) => callback(rootDir)),
-        onParsedFilesUpdate: (callback: (entry: Entry) => void) => {
-            console.log("PRELOAD");
-            ipcRenderer.on(ON_PARSED_FILES_UPDATE, (_, entry) => {
-                console.log("calling thecallback with entry: ");
-                console.log(entry);
-                callback(entry);
+        onParsedFilesUpdate: (callback: (entries: Entry[]) => void) => {
+            ipcRenderer.on(ON_PARSED_FILES_UPDATE, (_, entries) => {
+                callback(entries);
             });
         },
         onRegisterBreakpoint: (

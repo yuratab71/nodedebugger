@@ -146,6 +146,9 @@ export namespace DebuggerMethods {
 }
 
 export namespace DebuggerEvents {
+    export const PAUSED = "Debugger.paused";
+    export const SCRIPT_PARSED = "Debugger.scriptParsed";
+
     export type Paused = {
         callFrames: Debugger.CallFrame[];
         reason:

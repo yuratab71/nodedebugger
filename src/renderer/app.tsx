@@ -1,7 +1,7 @@
 import { Component } from "react";
 import { Box } from "@mui/material";
 import { AppWrapper } from "./appWrapper.component";
-import { FileExplorer } from "./components/fileExplorer/fileExlorer.component";
+import FileExplorer from "./components/fileExplorer/fileExlorer.component";
 import { Editor } from "./components/editor/editor.component";
 import { Stats } from "./components/stats/stats.components";
 

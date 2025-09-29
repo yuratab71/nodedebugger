@@ -5,8 +5,8 @@ import { Runtime, RuntimeMethods } from "../types/runtime.types";
 import { Parameters } from "../global";
 
 export class RuntimeDomain {
-    private ws: WS;
-    private logger: Logger;
+    private readonly ws: WS;
+    private readonly logger: Logger;
 
     constructor(socket: WS) {
         this.ws = socket;

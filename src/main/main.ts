@@ -6,6 +6,7 @@ import {
     IpcMainEvent,
     IpcMainInvokeEvent,
 } from "electron";
+import "dotenv/config";
 import {
     GET_FILE_CONTENT,
     GET_FILE_STRUCTURE,
@@ -27,20 +28,23 @@ import {
 import { MEMORY_USAGE_UPDATE_DELAY } from "./constants/debugger";
 import { Ids } from "./constants/debuggerMessageIds";
 import { Status } from "./constants/status";
-import { DebuggerDomain, DebuggerEvents } from "./domains/debugger";
+import { DebuggerDomain } from "./domains/debugger";
 import { RuntimeDomain } from "./domains/runtime";
 import { Entry } from "./types/fileManager.types";
 import { FileManager } from "./modules/fileManager";
 import { Logger, passMessage } from "./modules/logger";
 import Subprocess from "./modules/subprocess";
 import { WS } from "./modules/wsdbserver";
-import { Debugger } from "./types/debugger.types";
+import { Debugger, DebuggerEvents } from "./types/debugger.types";
 import { StartSubprocessTask } from "./strategies/startSubprocessStrategyTask";
 import { TaskQueueRunner } from "./modules/taskQueueRunner";
 import { GetConnectionStringTask } from "./strategies/getConnectionStringStrategyTask";
 import { EnableDebuggerTask } from "./strategies/enableDebuggerStrategy";
 import path from "path";
 import { InspectorMessage } from "./types/message.types";
+
+declare const MAIN_WINDOW_VITE_NAME: string | undefined;
+declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string | undefined;
 
 let platform: NodeJS.Platform;
 
@@ -200,15 +204,11 @@ const processWebSocketMessageCallback = (message: InspectorMessage) => {
                     !message?.params?.url.includes("node_modules") &&
                     message?.params?.sourceMapURL
                 ) {
-                    logger.group(message, "Parsed script test alalalala");
-                    const entry = fileManager.registerParsedFile(
-                        message.params.url,
-                        message.params?.sourceMapURL,
-                        message.params.url,
-                        message.result?.result?.type,
-                    );
-                    logger.group(entry, "Entry");
-                    mainWindow.webContents.send(ON_PARSED_FILES_UPDATE, entry);
+                    const params: DebuggerEvents.ScriptParsed = message.params;
+                    const entry = fileManager.registerParsedFile(params);
+                    mainWindow.webContents.send(ON_PARSED_FILES_UPDATE, [
+                        entry,
+                    ]);
                 }
                 break;
             default:

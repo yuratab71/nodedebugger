@@ -3,19 +3,12 @@ import { Result, Parameters } from "../global";
 import { Logger } from "../modules/logger";
 import { WS } from "../modules/wsdbserver";
 
-export const DebuggerEvents = {
-    PAUSED: "Debugger.paused",
-    SCRIPT_PARSED: "Debugger.scriptParsed",
-};
-
 export class DebuggerDomain {
     private readonly ws: WS;
-    private logger: Logger;
+    private readonly logger: Logger;
 
     private breakpoints: Debugger.Breakpoint[] = [];
-
-    //id received from Debugger.enable event
-    private debuggerId = "";
+    private debuggerId: string | null = null;
 
     constructor(socket: WS) {
         this.ws = socket;

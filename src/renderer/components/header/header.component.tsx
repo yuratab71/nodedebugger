@@ -49,7 +49,6 @@ export class Header extends Component<NavbarProps> {
                     elevation={2}
                     sx={{
                         display: "flex",
-                        alignItems: "center",
                         justifyContent: "flex-start",
                         height: 182,
                     }}>

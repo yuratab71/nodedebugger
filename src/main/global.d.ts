@@ -53,7 +53,7 @@ declare global {
             getFileContent: (src: string) => Promise<any>;
             getSourceMap: (src: string) => Promise<SourceMapConsumer | null>;
             getRootDir: (callback: (rootDir: string) => void) => void;
-            onParsedFilesUpdate: (callback: (entry: Entry) => void) => void;
+            onParsedFilesUpdate: (callback: (entries: Entry[]) => void) => void;
             onRegisterBreakpoint: (callback: (brk: Breakpoint) => void) => void;
             getObjectId: (name: string) => Promise<any>;
         };
@@ -61,3 +61,8 @@ declare global {
 }
 
 declare type FilePath = fs.PathOrFileDescriptor;
+
+declare type Environment = {
+    VERBOSE: "true" | "false";
+    MODE: "development" | "production" | "debug";
+};
