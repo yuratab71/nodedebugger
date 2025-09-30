@@ -171,10 +171,15 @@ const processWebSocketMessageCallback = (message: InspectorMessage) => {
             case Ids.DEBUGGER.SET_BREAKPOINT_BY_URL:
                 logger.log("set breakpoint by url response");
                 logger.group(message);
+                if (message.result?.locations.length === 0) {
+                    logger.log("received invalid breakpoint");
+                    return;
+                }
                 if (message.result?.breakpointId) {
                     debuggerDomain.registerBreakpoint(
                         message.result?.breakpointId,
                     );
+                    logger.group(message.result?.locations);
                     mainWindow.webContents.send(ON_REGISTER_BREAKPOINT, {
                         id: message.result?.breakpointId,
                     });
@@ -348,10 +353,12 @@ async function onSetBreakpointByUrlHandler(
 ) {
     const origLoc = fileManager.getOriginLocation(loc);
 
-    if (origLoc != null) {
+    logger.group(origLoc, "original location");
+    if (!!origLoc?.lineNumber && !!origLoc?.url) {
         loc = origLoc;
     }
 
+    logger.group(loc, "origin location");
     await debuggerDomain.setBreakpointByUrl(
         Ids.DEBUGGER.SET_BREAKPOINT_BY_URL,
         loc,

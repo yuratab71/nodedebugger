@@ -83,6 +83,7 @@ export class FileManager {
                 path: location,
                 isDir: stats.isDirectory(),
                 extension: path.extname(entry),
+                sources: [],
                 sourceMap: null,
             });
         });
@@ -143,9 +144,9 @@ export class FileManager {
             extension: fp.ext,
             sourceMapUrl: scriptParsed?.sourceMapURL ?? "none",
             sourceMap: sm,
-            sources: sm?.sources.map((el) => {
+            sources: sm?.sources ? sm?.sources.map((el) => {
                 return this.normalizeForPOSIXpath(path.resolve(fp.dir, el));
-            }),
+            }) : [],
         };
         this.parsedFiles.push(file);
         this.logger.group(file, "registered file");
@@ -165,6 +166,7 @@ export class FileManager {
                 scriptId: "",
                 isDir: stats.isDirectory(),
                 extension: path.extname(entry),
+                sources: [],
                 sourceMap: null,
             });
         });

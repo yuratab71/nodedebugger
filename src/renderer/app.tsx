@@ -2,8 +2,8 @@ import { Component } from "react";
 import { Box } from "@mui/material";
 import { AppWrapper } from "./appWrapper.component";
 import FileExplorer from "./components/fileExplorer/fileExlorer.component";
-import { Editor } from "./components/editor/editor.component";
-import { Stats } from "./components/stats/stats.components";
+import Editor from "./components/editor/editor.component";
+import Stats from "./components/stats/stats.components";
 
 interface AppProps {}
 interface AppState {
@@ -65,13 +65,9 @@ export default class App extends Component<AppProps, AppState> {
         return (
             <AppWrapper>
                 <Box display="flex" margin={0} padding={0}>
-                    <FileExplorer onClick={this.onFileClick} />
-                    <Editor
-                        onSetBreakpointByUrl={this.onSetBreakpointByUrl}
-                        onPosChange={this.onPosChange}
-                        value={this.state.editorValue}
-                    />
-                    <Stats pos={this.state.pos} />
+                    <FileExplorer />
+                    <Editor />
+                    <Stats />
                 </Box>
             </AppWrapper>
         );

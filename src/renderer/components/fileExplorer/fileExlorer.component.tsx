@@ -6,23 +6,28 @@ import { GlobalState } from "@/renderer/redux/store";
 import {
     AddParsedFileAction,
     ADD_PARSED_FILE,
-    ParsedFilesState,
+    UPDATE_CURRENT_FILE,
+    UpdateCurrentFileAction,
 } from "@/renderer/redux/parsedFiles.reducer";
 import { connect } from "react-redux";
 
 type TreeViewBaseItemExtended = TreeViewBaseItem & { inspectorUrl: string };
 
 interface StateProps {
-    parsedFiles: ParsedFilesState;
+    entries: Entry[];
+    currentFileUrl: string | null;
 }
 
 interface DispatchProps {
     addParsedFiles: (files: Entry[]) => void;
+    updateFile: (url: string, content: string) => void;
 }
 
 type FileExplorerProps = StateProps & DispatchProps;
 
 class FileExplorer extends Component<FileExplorerProps> {
+    treeItems: TreeViewBaseItem[] = [];
+
     override componentDidMount() {
         console.log("File explorer did mount");
         window.electronAPI.onParsedFilesUpdate((entries: Entry[]) => {
@@ -34,16 +39,24 @@ class FileExplorer extends Component<FileExplorerProps> {
         _: SyntheticEvent<Element, Event> | null,
         itemId: string,
     ) => {
-        //        await this.props.onClick(itemId, itemId);
+        if (itemId === this.props.currentFileUrl) return;
+
+        this.props.updateFile(
+            itemId,
+            await window.electronAPI.getFileContent(itemId),
+        );
     };
 
-    treeItems: TreeViewBaseItem[] = [];
-
-    onItemClick = (
+    onItemClick = async (
         _: React.MouseEvent<Element, MouseEvent>,
         itemId: string,
     ) => {
-        //       this.props.onClick(itemId, itemId);
+        if (itemId === this.props.currentFileUrl) return;
+
+        this.props.updateFile(
+            itemId,
+            await window.electronAPI.getFileContent(itemId),
+        );
     };
 
     override render(): ReactNode {
@@ -52,7 +65,7 @@ class FileExplorer extends Component<FileExplorerProps> {
                 <RichTreeView
                     sx={{ marginTop: 0 }}
                     onItemClick={this.onItemClick}
-                    items={this.props.parsedFiles.map(
+                    items={this.props.entries.map(
                         (entry: Entry): TreeViewBaseItemExtended => {
                             return {
                                 id: entry.path,
@@ -81,7 +94,8 @@ class FileExplorer extends Component<FileExplorerProps> {
 
 const mapStateToProps = (state: GlobalState): StateProps => {
     return {
-        parsedFiles: state.parsedFiles,
+        entries: state.parsedFiles.entries,
+        currentFileUrl: state.parsedFiles.currentFileUrl,
     };
 };
 
@@ -89,7 +103,18 @@ const mapDispatchToProps: DispatchProps = {
     addParsedFiles: (files: Entry[]) => {
         const action: AddParsedFileAction = {
             type: ADD_PARSED_FILE,
-            parsedFiles: files,
+            data: files,
+        };
+
+        return action;
+    },
+    updateFile: (url: string, content: string) => {
+        const action: UpdateCurrentFileAction = {
+            type: UPDATE_CURRENT_FILE,
+            data: {
+                url,
+                content,
+            },
         };
 
         return action;

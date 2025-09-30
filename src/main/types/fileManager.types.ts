@@ -9,7 +9,7 @@ export type Entry = {
     extension: string;
     sourceMapUrl?: string;
     sourceMap: SourceMap | null;
-    sources?: string[] | undefined;
+    sources: string[];
 };
 
 /**

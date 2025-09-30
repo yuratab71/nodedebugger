@@ -4,6 +4,7 @@ import fs from "fs";
 import { SourceMapConsumer } from "source-map-js";
 import { Breakpoint, LocationByUrl } from "./types/debugger";
 import { Runtime } from "./types/runtime.types";
+import { Debugger } from "electron";
 
 type Result<R> = {
     id: number;
@@ -38,7 +39,7 @@ declare global {
             resumeExecution: () => void;
             getScriptSource: () => void;
             setBreakpoint: () => void;
-            setBreakpointByUrl: (data: LocationByUrl) => void;
+            setBreakpointByUrl: (data: Debugger.LocationByUrl) => void;
             setWsStatus: (callback: (string) => void) => void;
             setMemoryUsage: (
                 callback: (data: Runtime.MemoryStats) => void,

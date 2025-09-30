@@ -1,22 +1,36 @@
 import React, { Component, createRef, ReactNode, RefObject } from "react";
 import { Box, Menu, MenuItem } from "@mui/material";
+import { GlobalState } from "@/renderer/redux/store";
+import {
+    UpdateLineAndColPositionAction,
+    UPDATE_LINE_AND_COL_POSITION,
+} from "@/renderer/redux/parsedFiles.reducer";
+import { connect } from "react-redux";
 
-interface EditorProps {
-    value: string;
-    onSetBreakpointByUrl: () => void;
+interface StateProps {
+    currentFileContent: string | null;
+    currentFileUrl: string | null;
+}
+
+interface DispatchProps {
     onPosChange: (line: number, col: number) => void;
 }
 interface EditorState {
     menuPos: { mouseX: number; mouseY: number } | null;
+    line: number | null;
+    col: number | null;
 }
 
-export class Editor extends Component<EditorProps, EditorState> {
-    constructor(props: EditorProps) {
+class Editor extends Component<StateProps & DispatchProps, EditorState> {
+    constructor(props: StateProps & DispatchProps) {
         super(props);
-        this.state = {
-            menuPos: null,
-        };
     }
+
+    override state: EditorState = {
+        menuPos: null,
+        line: null,
+        col: null,
+    };
 
     preRef: RefObject<HTMLPreElement | null> = createRef<HTMLPreElement>();
 
@@ -53,7 +67,9 @@ export class Editor extends Component<EditorProps, EditorState> {
         const line = before.split("\n").length;
         const col = caretIndex - before.lastIndexOf("\n");
 
-        this.props.onPosChange(line, col);
+        this.setState((prevState) => ({ ...prevState, line: line, col: col }));
+        if (this.props.currentFileContent != null)
+            this.props.onPosChange(line, col);
     };
 
     handleContextMenu = (e: React.MouseEvent<HTMLPreElement>) => {
@@ -94,7 +110,9 @@ export class Editor extends Component<EditorProps, EditorState> {
                         onContextMenu={this.handleContextMenu}
                         ref={this.preRef}
                         onMouseMove={this.handleMouse}>
-                        {this.props.value}
+                        {this.props.currentFileContent
+                            ? this.props.currentFileContent
+                            : "..."}
                     </pre>
                 </Box>
                 <Menu
@@ -111,7 +129,12 @@ export class Editor extends Component<EditorProps, EditorState> {
                     }>
                     <MenuItem
                         onClick={() => {
-                            this.props.onSetBreakpointByUrl();
+                            console.log(this.props.currentFileUrl);
+                            console.log(this.state.line);
+                            window.electronAPI.setBreakpointByUrl({
+                                url: this.props.currentFileUrl,
+                                lineNumber: this.state.line,
+                            });
                         }}>
                         Set Breakpoint
                     </MenuItem>
@@ -130,3 +153,26 @@ export class Editor extends Component<EditorProps, EditorState> {
         );
     }
 }
+
+const mapStateToProps = (state: GlobalState): StateProps => {
+    return {
+        currentFileContent: state.parsedFiles.currentFileContent,
+        currentFileUrl: state.parsedFiles.currentFileUrl,
+    };
+};
+
+const mapDispatchToProps: DispatchProps = {
+    onPosChange: (line: number, col: number) => {
+        const action: UpdateLineAndColPositionAction = {
+            type: UPDATE_LINE_AND_COL_POSITION,
+            data: {
+                line,
+                col,
+            },
+        };
+
+        return action;
+    },
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(Editor);

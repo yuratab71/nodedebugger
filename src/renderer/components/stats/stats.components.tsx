@@ -1,23 +1,34 @@
+import { Debugger } from "@/main/types/debugger.types";
+import {
+    AddBreakpointAction,
+    ADD_BREAKPOINT,
+} from "@/renderer/redux/breakpoints.reducer";
+import { GlobalState } from "@/renderer/redux/store";
 import { Typography } from "@mui/material";
 import { Box } from "@mui/system";
 import { RichTreeView, TreeViewBaseItem } from "@mui/x-tree-view";
 import { Component, ReactNode } from "react";
+import { connect } from "react-redux";
 
-interface StatsProps {
-    pos: {
-        line: number;
-        col: number;
-    };
+interface StateProps {
+    line: number | null;
+    col: number | null;
+    breakpointsIds: string[];
 }
+
+interface DispatchProps {
+    addBreakpoint: (id: string) => void;
+}
+
 interface StatsState {
     breakpoints: TreeViewBaseItem;
 }
 
-export class Stats extends Component<StatsProps, StatsState> {
+class Stats extends Component<StateProps & DispatchProps, StatsState> {
     private BRK_ID = "brk-id";
     private BRK_LABEL = "Breakpoints";
 
-    constructor(props: StatsProps) {
+    constructor(props: StateProps & DispatchProps) {
         super(props);
         this.state = {
             breakpoints: {
@@ -29,23 +40,8 @@ export class Stats extends Component<StatsProps, StatsState> {
     }
 
     override componentDidMount() {
-        window.electronAPI.onRegisterBreakpoint((brk) => {
-            this.setState((prevState) => {
-                if (prevState.breakpoints.children) {
-                    return {
-                        breakpoints: {
-                            id: this.BRK_ID,
-                            label: this.BRK_LABEL,
-                            children: [
-                                ...prevState.breakpoints.children,
-                                { id: brk.id, label: brk.id },
-                            ],
-                        },
-                    };
-                } else {
-                    return prevState;
-                }
-            });
+        window.electronAPI.onRegisterBreakpoint((brk: Debugger.Breakpoint) => {
+            this.props.addBreakpoint(brk.id);
         });
     }
 
@@ -54,17 +50,53 @@ export class Stats extends Component<StatsProps, StatsState> {
             <Box width="310px" height="90vh">
                 <Box display="flex" flexDirection="row">
                     <Box sx={{ marginRight: 2 }}>
-                        <Typography>line: {this.props.pos.line}</Typography>
+                        <Typography>line: {this.props.line}</Typography>
                     </Box>
                     <Box>
-                        <Typography>col: {this.props.pos.col}</Typography>
+                        <Typography>col: {this.props.col}</Typography>
                     </Box>
                 </Box>
                 <RichTreeView
                     sx={{ marginTop: 1 }}
-                    items={[this.state.breakpoints]}
+                    items={[
+                        {
+                            id: this.BRK_ID,
+                            label: this.BRK_LABEL,
+                            children: [
+                                ...this.props.breakpointsIds.map((el) => {
+                                    const str = el.split("/");
+                                    return {
+                                        id: el,
+                                        label:
+                                            str[0] + "/" + str[str.length - 1],
+                                    };
+                                }),
+                            ],
+                        },
+                    ]}
                 />
             </Box>
         );
     }
 }
+
+const mapStateToProps = (state: GlobalState): StateProps => {
+    return {
+        line: state.parsedFiles.line,
+        col: state.parsedFiles.col,
+        breakpointsIds: state.breakpoints.ids,
+    };
+};
+
+const mapDispatchToProps: DispatchProps = {
+    addBreakpoint: (data) => {
+        const action: AddBreakpointAction = {
+            type: ADD_BREAKPOINT,
+            data,
+        };
+
+        return action;
+    },
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(Stats);

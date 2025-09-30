@@ -79,6 +79,7 @@ export class DebuggerDomain {
         id: number,
         loc: Debugger.LocationWithUrl,
     ): Promise<Result<Debugger.SetBreakPonitByUrlReturn> | null> {
+        this.logger.log(`received location: ${loc.lineNumber}`);
         return await this.ws.sendAndReceive<
             Result<Debugger.SetBreakPonitByUrlReturn>
         >(
@@ -87,8 +88,8 @@ export class DebuggerDomain {
                 id: id,
                 method: DebuggerMethods.SET_BREAKPOINT_BY_URL,
                 params: {
-                    url: loc.url,
-                    lineNumber: loc.lineNumber - 1,
+                    url: "file:///" + loc.url,
+                    lineNumber: loc.lineNumber,
                 },
             }),
         );
