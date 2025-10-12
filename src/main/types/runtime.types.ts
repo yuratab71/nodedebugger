@@ -1,6 +1,6 @@
 export namespace Runtime {
-    export type EnableParams = {};
-    export type RunIfWaitingForDebuggerParams = {};
+    export type EnableParams = never;
+    export type RunIfWaitingForDebuggerParams = never;
 
     export type EvaluateParams = {
         expression: string;
@@ -129,7 +129,7 @@ export namespace Runtime {
      *  Represents function call argument. Either remote object id objectId, primitive value, unserializable primitive value or neither of (for undefined) them should be specified.
      * */
     export type CallArgument = {
-        value?: any;
+        value?: unknown;
         unserializableValue?: UnserializableValue;
         objectId?: RemoteObjectId;
     };
@@ -150,7 +150,7 @@ export namespace Runtime {
      * */
     export type DeepSerializedValue = {
         type: ObjectType;
-        value?: any;
+        value?: unknown;
         objectId?: string;
         weakLocalObjectReference?: number;
     };
@@ -171,13 +171,13 @@ export namespace Runtime {
         type: PrimitiveType;
         subtype?: Subtype;
         className?: string;
-        value?: any | MemoryStats; // will be extended for more types that returned by evaluation
+        value?: unknown | MemoryStats; // will be extended for more types that returned by evaluation
         unserializableValue?: UnserializableValue;
         description?: string;
         deepSerializedValue?: DeepSerializedValue;
         objectId?: RemoteObjectId;
-        preview?: any; // TODO: finish this types
-        customPreview: any; // TODO: finish this types
+        preview?: unknown; // TODO: finish this types
+        customPreview: unknown; // TODO: finish this types
     };
 
     /**
@@ -193,7 +193,7 @@ export namespace Runtime {
         stackTrace?: StackTrace;
         exception?: RemoteObject;
         executionContextId?: ExecutionContextId;
-        exceptionMetaData: Object;
+        exceptionMetaData: unknown;
     };
 
     /**
@@ -204,7 +204,7 @@ export namespace Runtime {
         origin: string;
         name: string;
         uniqueId: string;
-        auxData?: Object;
+        auxData?: unknown;
     };
 
     /**
@@ -231,7 +231,7 @@ export namespace Runtime {
     export type SerializationOptions = {
         serialization: "deep" | "json" | "idOnly";
         maxDepth?: number;
-        additionalParameters?: Object;
+        additionalParameters?: unknown;
     };
 
     export type MemoryStats = {
@@ -243,8 +243,8 @@ export namespace Runtime {
 }
 
 export namespace RuntimeMethods {
-    export const ENABLE: string = "Runtime.enable";
-    export const EVALUATE: string = "Runtime.evaluate";
+    export const ENABLE = "Runtime.enable";
+    export const EVALUATE = "Runtime.evaluate";
     export const RUN_IF_WAITING_FOR_DEBUGGER =
         "Runtime.runIfWaitingForDebugger";
     export const GLOBAL_LEXICAL_SCOPE_NAMES = "Runtime.globalLexicalScopeNames";

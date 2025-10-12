@@ -1,4 +1,4 @@
-import { Runtime } from "./runtime.types";
+import type { Runtime } from "./runtime.types";
 
 export namespace Profiler {
     export type CoverageRange = {

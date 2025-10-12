@@ -1,86 +1,59 @@
-import {
-    app,
-    BrowserWindow,
-    dialog,
-    ipcMain,
-    IpcMainEvent,
-    IpcMainInvokeEvent,
-} from "electron";
+import type * as electron from "electron";
+import { app, BrowserWindow, dialog, ipcMain } from "electron";
 import "dotenv/config";
-import {
-    GET_FILE_CONTENT,
-    GET_FILE_STRUCTURE,
-    GET_SOURCE_MAP,
-    ON_FILE_STRUCTURE_RESOLVE,
-    ON_ROOT_DIR_RESOLVE,
-    ON_PROCESS_LOG_UPDATE,
-    RUN_RESUME_EXECUTION,
-    SET_BREAKPOINT_BY_URL,
-    SET_DIRECTORY,
-    ON_MEMORY_USAGE_UPDATE,
-    ON_WS_CONNECTION_STATUS_UPDATE,
-    RUN_START_SUBPROCESS,
-    RUN_TERMINATE_SUBPROCESS,
-    ON_PARSED_FILES_UPDATE,
-    ON_REGISTER_BREAKPOINT,
-    GET_OBJECT_ID,
-} from "./constants/commands";
+import path from "path";
+import type { SourceMapConsumer } from "source-map-js";
+import * as commands from "./constants/commands";
 import { MEMORY_USAGE_UPDATE_DELAY } from "./constants/debugger";
 import { Ids } from "./constants/debuggerMessageIds";
 import { Status } from "./constants/status";
 import { DebuggerDomain } from "./domains/debugger";
 import { RuntimeDomain } from "./domains/runtime";
-import { Entry } from "./types/fileManager.types";
 import { FileManager } from "./modules/fileManager";
 import { Logger, passMessage } from "./modules/logger";
 import Subprocess from "./modules/subprocess";
-import { WS } from "./modules/wsdbserver";
-import { Debugger, DebuggerEvents } from "./types/debugger.types";
-import { StartSubprocessTask } from "./strategies/startSubprocessStrategyTask";
 import { TaskQueueRunner } from "./modules/taskQueueRunner";
-import { GetConnectionStringTask } from "./strategies/getConnectionStringStrategyTask";
+import { WS } from "./modules/wsdbserver";
 import { EnableDebuggerTask } from "./strategies/enableDebuggerStrategy";
-import path from "path";
-import { InspectorMessage } from "./types/message.types";
+import { GetConnectionStringTask } from "./strategies/getConnectionStringStrategyTask";
+import { StartSubprocessTask } from "./strategies/startSubprocessStrategyTask";
+import type { Debugger } from "./types/debugger.types";
+import { DebuggerEvents } from "./types/debugger.types";
+import type { Entry } from "./types/fileManager.types";
+import type { InspectorMessage } from "./types/message.types";
 
 declare const MAIN_WINDOW_VITE_NAME: string | undefined;
 declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string | undefined;
 
-let platform: NodeJS.Platform;
-
-// declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
-// declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
-
-// Inti all required modules ====================
-// eslint-disable-next-line
+// Innit all required modules ====================
 let ws: WS;
 let status: Status = Status.NOT_ACTIVE;
-
 let runtimeDomain: RuntimeDomain;
 let debuggerDomain: DebuggerDomain;
-
 let subprocess: Subprocess;
 let fileManager: FileManager;
-// const queueProcessor = QueueProcessor.instance();
-
 let mainWindow: BrowserWindow;
 const logger = new Logger("IPC MAIN");
 const taskRunner = TaskQueueRunner.instance();
 
 // =============================================
 
-if (require("electron-squirrel-startup")) {
+if (require("electron-squirrel-startup") != undefined) {
     app.quit();
 }
 
-const sendStatus = (st: Status) => {
+const sendStatus = (st: Status): void => {
     status = st;
-    mainWindow.webContents.send(ON_WS_CONNECTION_STATUS_UPDATE, status);
+    mainWindow.webContents.send(
+        commands.ON_WS_CONNECTION_STATUS_UPDATE,
+        status,
+    );
+    return;
 };
 
 const createWindow = (): void => {
-    platform = process.platform;
-    logger.log(`Starting Nquisitor on: ${platform}`);
+    logger.log(`Starting Nquisitor on: ${process.platform}`);
+
     mainWindow = new BrowserWindow({
         height: 760,
         width: 1024,
@@ -90,20 +63,26 @@ const createWindow = (): void => {
         },
     });
 
-    if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
+    if (MAIN_WINDOW_VITE_DEV_SERVER_URL != undefined) {
         mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
     } else {
         mainWindow.loadFile(
             path.join(
                 __dirname,
-                `../renderer/${MAIN_WINDOW_VITE_NAME}index.html`,
+                `../renderer/${MAIN_WINDOW_VITE_NAME ?? ""}index.html`,
             ),
         );
     }
 
     sendStatus(Status.NOT_ACTIVE);
 
-    // prevent subprocess to continue execution on linux
+    logger.log(`After main function`);
+    setInterval(() => {
+        if (WS.isConnected()) {
+            runtimeDomain.getMemoryUsage(Ids.RUNTIME.GET_MEMORY_USAGE);
+        }
+    }, MEMORY_USAGE_UPDATE_DELAY);
+
     process.on("SIGINT", () => {
         logger.log("received SIGINT signal");
         Subprocess.kill();
@@ -116,20 +95,7 @@ const createWindow = (): void => {
         process.exit(0);
     });
 
-    setInterval(() => {
-        if (WS.isConnected() && !!runtimeDomain) {
-            // logger.log("getting memory usage");
-            runtimeDomain.getMemoryUsage(Ids.RUNTIME.GET_MEMORY_USAGE);
-        }
-    }, MEMORY_USAGE_UPDATE_DELAY);
-
-    // crash on exception for debugging purposes
-    process.removeAllListeners("uncaughtException");
-
-    process.on("uncaughtException", (err: Error) => {
-        logger.error(err);
-        process.exit(1);
-    });
+    mainWindow.webContents.openDevTools();
 };
 
 app.on("ready", createWindow);
@@ -147,12 +113,12 @@ app.on("activate", () => {
     }
 });
 
-const processWebSocketMessageCallback = (message: InspectorMessage) => {
+const processWebSocketMessageCallback = (message: InspectorMessage): void => {
     if (message.id) {
         switch (message.id) {
             case Ids.RUNTIME.GET_MEMORY_USAGE:
                 mainWindow.webContents.send(
-                    ON_MEMORY_USAGE_UPDATE,
+                    commands.ON_MEMORY_USAGE_UPDATE,
                     message.result.result.value,
                 );
                 break;
@@ -171,18 +137,21 @@ const processWebSocketMessageCallback = (message: InspectorMessage) => {
             case Ids.DEBUGGER.SET_BREAKPOINT_BY_URL:
                 logger.log("set breakpoint by url response");
                 logger.group(message);
-                if (message.result?.locations.length === 0) {
+                if (message.result.locations.length === 0) {
                     logger.log("received invalid breakpoint");
                     return;
                 }
-                if (message.result?.breakpointId) {
+                if (message.result.breakpointId) {
                     debuggerDomain.registerBreakpoint(
-                        message.result?.breakpointId,
+                        message.result.breakpointId,
                     );
-                    logger.group(message.result?.locations);
-                    mainWindow.webContents.send(ON_REGISTER_BREAKPOINT, {
-                        id: message.result?.breakpointId,
-                    });
+                    logger.group(message.result.locations);
+                    mainWindow.webContents.send(
+                        commands.ON_REGISTER_BREAKPOINT,
+                        {
+                            id: message.result.breakpointId,
+                        },
+                    );
                 }
                 return;
             default:
@@ -195,25 +164,23 @@ const processWebSocketMessageCallback = (message: InspectorMessage) => {
     if (message.method) {
         switch (message.method) {
             case DebuggerEvents.PAUSED:
-                /*logger.log("received pause method response");
-                logger.group(message, "pause result");
-                logger.group(message?.params?.callFrames, "call frame");*/
                 mainWindow.webContents.send(
-                    ON_PROCESS_LOG_UPDATE,
-                    `debugger paused, reason: ${message.params?.reason}`,
+                    commands.ON_PROCESS_LOG_UPDATE,
+                    `debugger paused, reason: ${message.params.reason}`,
                 );
                 break;
             case DebuggerEvents.SCRIPT_PARSED:
-                if (!message.params?.url) break;
+                if (!message.params.url) break;
                 if (
-                    !message?.params?.url.includes("node_modules") &&
-                    message?.params?.sourceMapURL
+                    !message.params.url.includes("node_modules") &&
+                    message.params.sourceMapURL != undefined
                 ) {
                     const params: DebuggerEvents.ScriptParsed = message.params;
                     const entry = fileManager.registerParsedFile(params);
-                    mainWindow.webContents.send(ON_PARSED_FILES_UPDATE, [
-                        entry,
-                    ]);
+                    mainWindow.webContents.send(
+                        commands.ON_PARSED_FILES_UPDATE,
+                        [entry],
+                    );
                 }
                 break;
             default:
@@ -226,48 +193,49 @@ const processWebSocketMessageCallback = (message: InspectorMessage) => {
 };
 // main event that trigger all application, must be set first
 // parse directory where project located
-ipcMain.on(SET_DIRECTORY, onSetDirectoryHandler);
+ipcMain.on(commands.SET_DIRECTORY, onSetDirectoryHandler);
 
-ipcMain.on(RUN_START_SUBPROCESS, onStartSubprocessHandler);
-ipcMain.on(RUN_TERMINATE_SUBPROCESS, onTerminateSubprocessHandler);
-ipcMain.on(ON_WS_CONNECTION_STATUS_UPDATE, onSetWsStatusHandler);
+ipcMain.on(commands.RUN_START_SUBPROCESS, onStartSubprocessHandler);
+ipcMain.on(commands.RUN_TERMINATE_SUBPROCESS, onTerminateSubprocessHandler);
+ipcMain.on(commands.ON_WS_CONNECTION_STATUS_UPDATE, onSetWsStatusHandler);
 
-ipcMain.handle(GET_FILE_CONTENT, onGetFileContentHandler);
-ipcMain.handle(GET_FILE_STRUCTURE, onGetFileStructureHandler);
-ipcMain.handle(GET_SOURCE_MAP, onGetSourceMapHandler);
-ipcMain.handle(GET_OBJECT_ID, onGetObjectIdHandler);
-ipcMain.on(SET_BREAKPOINT_BY_URL, onSetBreakpointByUrlHandler);
-ipcMain.on(RUN_RESUME_EXECUTION, onDebuggerResumeHandler);
+ipcMain.handle(commands.GET_FILE_CONTENT, onGetFileContentHandler);
+ipcMain.handle(commands.GET_FILE_STRUCTURE, onGetFileStructureHandler);
+ipcMain.handle(commands.GET_SOURCE_MAP, onGetSourceMapHandler);
+ipcMain.handle(commands.GET_OBJECT_ID, onGetObjectIdHandler);
+ipcMain.on(commands.SET_BREAKPOINT_BY_URL, onSetBreakpointByUrlHandler);
+ipcMain.on(commands.RUN_RESUME_EXECUTION, onDebuggerResumeHandler);
 
-async function onGetObjectIdHandler(_: IpcMainInvokeEvent, name: string) {
-    const scope = await runtimeDomain.globalLexicalScopeNames();
-    logger.log("scope");
-    logger.group(scope);
-    return await runtimeDomain.evaluateExpression(name);
+function onGetObjectIdHandler(
+    _: electron.IpcMainInvokeEvent,
+    name: string,
+): void {
+    logger.log(name);
+    return;
 }
 
 async function onSetDirectoryHandler(): Promise<void> {
-    const result = await dialog.showOpenDialog({
+    const result: Electron.OpenDialogReturnValue = await dialog.showOpenDialog({
         properties: ["openDirectory"],
     });
-    if (
-        !result.canceled &&
-        result.filePaths.length > 0 &&
-        result.filePaths[0]
-    ) {
+    if (!result.canceled && result.filePaths[0] != undefined) {
         FileManager.removeInstance();
         fileManager = FileManager.instance({
             src: result.filePaths[0],
             onFileStructureResolveCallback: (root: string, files: Entry[]) => {
                 logger.log("sending data to ui");
-                mainWindow.webContents.send(ON_FILE_STRUCTURE_RESOLVE, files);
-                mainWindow.webContents.send(ON_ROOT_DIR_RESOLVE, root);
+                mainWindow.webContents.send(
+                    commands.ON_FILE_STRUCTURE_RESOLVE,
+                    files,
+                );
+                mainWindow.webContents.send(commands.ON_ROOT_DIR_RESOLVE, root);
             },
         });
         return;
     }
 
     logger.log("Unable to detect directory");
+    return;
 }
 
 async function onStartSubprocessHandler(): Promise<void> {
@@ -287,10 +255,10 @@ async function onStartSubprocessHandler(): Promise<void> {
     }
     // all initialization goes in this file
     // all tasks goes in strategies and queue
-    if (!WS.isConnected(ws?.url)) {
+    if (!WS.isConnected(ws.url)) {
         logger.log("initializing the ws");
         ws = WS.instance({
-            url: ws?.url,
+            url: ws.url,
             onStatusUpdateCallback: sendStatus,
             onMessageCallback: processWebSocketMessageCallback,
         });
@@ -298,7 +266,7 @@ async function onStartSubprocessHandler(): Promise<void> {
         debuggerDomain = new DebuggerDomain(ws);
     } else {
         mainWindow.webContents.send(
-            ON_PROCESS_LOG_UPDATE,
+            commands.ON_PROCESS_LOG_UPDATE,
             passMessage("Debugger already attached"),
         );
     }
@@ -312,49 +280,61 @@ async function onStartSubprocessHandler(): Promise<void> {
 function onTerminateSubprocessHandler(): void {
     if (Subprocess.isRunning()) {
         mainWindow.webContents.send(
-            ON_PROCESS_LOG_UPDATE,
+            commands.ON_PROCESS_LOG_UPDATE,
             passMessage("terminating the process"),
         );
         Subprocess.kill();
     } else {
         mainWindow.webContents.send(
-            ON_PROCESS_LOG_UPDATE,
+            commands.ON_PROCESS_LOG_UPDATE,
             passMessage("process isnt running"),
         );
     }
 }
 
-function onSetWsStatusHandler(_: IpcMainEvent, status: string): void {
-    mainWindow.webContents.send(ON_WS_CONNECTION_STATUS_UPDATE, status);
+function onSetWsStatusHandler(_: electron.IpcMainEvent, status: string): void {
+    mainWindow.webContents.send(
+        commands.ON_WS_CONNECTION_STATUS_UPDATE,
+        status,
+    );
 }
 
-function onGetFileContentHandler(_: IpcMainInvokeEvent, src: string): string {
-    if (fileManager?.main) return fileManager.readFile(src);
+function onGetFileContentHandler(
+    _: electron.IpcMainInvokeEvent,
+    src: string,
+): string {
+    if (fileManager.main != null) return fileManager.readFile(src);
     return "";
 }
 
-function onGetFileStructureHandler(_: IpcMainInvokeEvent, src: string) {
-    if (fileManager?.main) return fileManager.getDirectoryContent(src);
+function onGetFileStructureHandler(
+    _: electron.IpcMainInvokeEvent,
+    src: string,
+): Entry[] {
+    if (fileManager.main != null) return fileManager.getDirectoryContent(src);
 
     return [];
 }
 
-function onDebuggerResumeHandler() {
+function onDebuggerResumeHandler(): void {
     debuggerDomain.resume(Ids.DEBUGGER.RESUME);
 }
 
-function onGetSourceMapHandler(_: IpcMainInvokeEvent, src: string) {
+function onGetSourceMapHandler(
+    _: electron.IpcMainInvokeEvent,
+    src: string,
+): SourceMapConsumer | null {
     return fileManager.evaluateSourceMap(src);
 }
 
 async function onSetBreakpointByUrlHandler(
-    _: IpcMainEvent,
+    _: electron.IpcMainEvent,
     loc: Debugger.LocationWithUrl,
-) {
+): Promise<void> {
     const origLoc = fileManager.getOriginLocation(loc);
 
     logger.group(origLoc, "original location");
-    if (!!origLoc?.lineNumber && !!origLoc?.url) {
+    if (origLoc != null) {
         loc = origLoc;
     }
 

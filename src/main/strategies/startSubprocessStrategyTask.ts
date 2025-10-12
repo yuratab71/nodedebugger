@@ -1,7 +1,7 @@
-import { BrowserWindow } from "electron";
+import type { BrowserWindow } from "electron";
 import { ON_PROCESS_LOG_UPDATE } from "../constants/commands";
-import { IStrategy } from "../types/strategy";
-import { FileManager } from "../modules/fileManager";
+import type { IStrategy } from "../types/strategy.types";
+import type { FileManager } from "../modules/fileManager";
 import { passMessage } from "../modules/logger";
 import path from "path";
 import Subprocess from "../modules/subprocess";
@@ -13,14 +13,13 @@ type StartSubprocessContext = {
 };
 
 export class StartSubprocessTask implements IStrategy<StartSubprocessContext> {
-    context: StartSubprocessContext;
+    public context: StartSubprocessContext;
 
-    constructor(context: StartSubprocessContext) {
+    public constructor(context: StartSubprocessContext) {
         this.context = context;
     }
 
-    async run(): Promise<void> {
-        //
+    public async run(): Promise<void> {
         if (Subprocess.isRunning()) {
             this.context.mainWindow.webContents.send(
                 ON_PROCESS_LOG_UPDATE,
@@ -29,24 +28,22 @@ export class StartSubprocessTask implements IStrategy<StartSubprocessContext> {
             return;
         }
 
-        //
-        let mainPath = this.context.fileManager.getPathToMain();
+        const mainPath = this.context.fileManager.getPathToMain();
 
-        if (!mainPath) return;
+        if (mainPath === null) return;
 
-        //
         this.context.subprocess = Subprocess.instance({
             entry: path.normalize(mainPath),
-            onData: (data: any) => {
+            onData: (data: unknown) => {
                 this.context.mainWindow.webContents.send(
                     ON_PROCESS_LOG_UPDATE,
-                    data.toString(),
+                    JSON.stringify(data),
                 );
             },
-            onError: (data: any) => {
+            onError: (data: unknown) => {
                 this.context.mainWindow.webContents.send(
                     ON_PROCESS_LOG_UPDATE,
-                    `ERROR: ${data.toString()}`,
+                    `ERROR: ${JSON.stringify(data)}`,
                 );
             },
             onExit: (code: number, signal: NodeJS.Signals) => {
@@ -62,7 +59,7 @@ export class StartSubprocessTask implements IStrategy<StartSubprocessContext> {
         });
 
         //
-        this.context.mainWindow.webContents.send(
+        await this.context.mainWindow.webContents.send(
             ON_PROCESS_LOG_UPDATE,
             passMessage(
                 `starting and external process with entry: ${this.context.subprocess.entry}`,

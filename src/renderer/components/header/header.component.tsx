@@ -1,20 +1,17 @@
-import { Component, ReactNode } from "react";
 import { Avatar, Box, Button, Paper, Typography } from "@mui/material";
+import type { ReactNode } from "react";
+import { Component } from "react";
 import { connect } from "react-redux";
 import MainLogo from "../../../../public/Main_logo.png";
-import { NqLogs } from "../nqLogs/nquisitorLogs.component";
+import type { Status } from "../../../main/constants/status";
+import type { Runtime } from "../../../main/types/runtime.types";
+import type { UpdateMemoryStatsAction } from "../../redux/memoryStats.reducer";
+import { UPDATE_MEMORY_STATS } from "../../redux/memoryStats.reducer";
+import type { GlobalState } from "../../redux/store";
+import type { UpdateWebSocketStatusAction } from "../../redux/webSocketConnection.reducer";
+import { UPDATE_WS_CONNECTION } from "../../redux/webSocketConnection.reducer";
 import { Dot } from "../common/dot.component";
-import {
-    UpdateMemoryStatsAction,
-    UPDATE_MEMORY_STATS,
-} from "@/renderer/redux/memoryStats.reducer";
-import { Status } from "@/main/constants/status";
-import { GlobalState } from "@/renderer/redux/store";
-import { Runtime } from "@/main/types/runtime.types";
-import {
-    UpdateWebSocketStatusAction,
-    UPDATE_WS_CONNECTION,
-} from "@/renderer/redux/webSocketConnection.reducer";
+import { NqLogs } from "../nqLogs/nquisitorLogs.component";
 
 interface StateProps {
     memStats: Runtime.MemoryStats;
@@ -28,11 +25,11 @@ interface DispatchProps {
 
 type NavbarProps = StateProps & DispatchProps;
 
-export class Header extends Component<NavbarProps> {
-    formatMemoryValue(val: number): string {
+class Header extends Component<NavbarProps> {
+    private formatMemoryValue(val: number): string {
         return (val / 1024 / 1024).toFixed(2);
     }
-    override componentDidMount() {
+    public override componentDidMount(): void {
         window.electronAPI.setMemoryUsage((data) => {
             this.props.updateMemStats(data);
         });
@@ -41,7 +38,7 @@ export class Header extends Component<NavbarProps> {
             this.props.updateWsStatus(status),
         );
     }
-    override render(): ReactNode {
+    public override render(): ReactNode {
         const { status, memStats } = this.props;
         return (
             <>
@@ -51,7 +48,8 @@ export class Header extends Component<NavbarProps> {
                         display: "flex",
                         justifyContent: "flex-start",
                         height: 182,
-                    }}>
+                    }}
+                >
                     <Avatar
                         sx={{
                             objectFit: "cover",
@@ -65,7 +63,8 @@ export class Header extends Component<NavbarProps> {
                         maxWidth={1024}
                         sx={{
                             height: "100%",
-                        }}>
+                        }}
+                    >
                         <NqLogs />
                     </Box>
                     <Box
@@ -75,7 +74,8 @@ export class Header extends Component<NavbarProps> {
                         flexDirection="column"
                         sx={{
                             padding: 1,
-                        }}>
+                        }}
+                    >
                         <Box display="flex" height="20%" flexDirection="row">
                             <Button
                                 size="small"
@@ -83,7 +83,8 @@ export class Header extends Component<NavbarProps> {
                                 variant="contained"
                                 onClick={() => {
                                     window.electronAPI.setSubprocessDirectory();
-                                }}>
+                                }}
+                            >
                                 Open
                             </Button>
                             <Button
@@ -92,7 +93,8 @@ export class Header extends Component<NavbarProps> {
                                 variant="contained"
                                 onClick={() => {
                                     window.electronAPI.startProcess();
-                                }}>
+                                }}
+                            >
                                 Run
                             </Button>
                             <Button
@@ -101,7 +103,8 @@ export class Header extends Component<NavbarProps> {
                                 variant="contained"
                                 onClick={() => {
                                     window.electronAPI.resumeExecution();
-                                }}>
+                                }}
+                            >
                                 Resume
                             </Button>
 
@@ -111,14 +114,16 @@ export class Header extends Component<NavbarProps> {
                                 variant="contained"
                                 onClick={() => {
                                     window.electronAPI.terminateProcess();
-                                }}>
+                                }}
+                            >
                                 Kill
                             </Button>
                         </Box>
                         <Box
                             sx={{
                                 marginTop: 1,
-                            }}>
+                            }}
+                        >
                             <Box display="flex" justifyContent="space-between">
                                 <Typography fontSize="12px" fontWeight="bold">
                                     Status:

@@ -1,23 +1,20 @@
 import { Ids } from "../constants/debuggerMessageIds";
-import { WS } from "../modules/wsdbserver";
+import type { WS } from "../modules/wsdbserver";
 import { Logger } from "../modules/logger";
-import { Runtime, RuntimeMethods } from "../types/runtime.types";
-import { Parameters } from "../global";
+import type { Runtime } from "../types/runtime.types";
+import { RuntimeMethods } from "../types/runtime.types";
+import type { Parameters } from "../global";
 
 export class RuntimeDomain {
     private readonly ws: WS;
     private readonly logger: Logger;
 
-    constructor(socket: WS) {
+    public constructor(socket: WS) {
         this.ws = socket;
         this.logger = new Logger("RUNTIME DOMAIN");
     }
 
-    private buildMessage<P>(input: Parameters<P>): string {
-        return JSON.stringify(input);
-    }
-
-    enable(id: number) {
+    public enable(id: number): void {
         this.ws.send(
             this.buildMessage<Runtime.EnableParams>({
                 id,
@@ -28,10 +25,10 @@ export class RuntimeDomain {
         this.logger.log("runtime enable has been sent");
     }
 
-    async runIfWaitingForDebugger(id: number): Promise<{} | null> {
+    public async runIfWaitingForDebugger(id: number): Promise<unknown | null> {
         this.logger.log("sending runIfWaitingForDebugger");
 
-        return await this.ws.sendAndReceive<{}>(
+        return await this.ws.sendAndReceive<unknown>(
             id,
             this.buildMessage<Runtime.RunIfWaitingForDebuggerParams>({
                 id,
@@ -40,7 +37,7 @@ export class RuntimeDomain {
         );
     }
 
-    getMemoryUsage(id: number): void {
+    public getMemoryUsage(id: number): void {
         this.ws.send(
             this.buildMessage<Runtime.EvaluateParams>({
                 id,
@@ -53,7 +50,7 @@ export class RuntimeDomain {
         );
     }
 
-    async evaluateExpression(
+    public async evaluateExpression(
         expression: string,
     ): Promise<Runtime.EvaluateResult | null> {
         const message: Parameters<Runtime.EvaluateParams> = {
@@ -73,15 +70,7 @@ export class RuntimeDomain {
         );
     }
 
-    async globalLexicalScopeNames() {
-        const message = {
-            id: Ids.RUNTIME.GLOBAL_LEXICAL_SCOPE_NAMES,
-            method: RuntimeMethods.GLOBAL_LEXICAL_SCOPE_NAMES,
-        };
-
-        return await this.ws.sendAndReceive(
-            Ids.RUNTIME.GLOBAL_LEXICAL_SCOPE_NAMES,
-            JSON.stringify(message),
-        );
+    private buildMessage<P>(input: Parameters<P>): string {
+        return JSON.stringify(input);
     }
 }

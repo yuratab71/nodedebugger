@@ -1,4 +1,4 @@
-import { SourceMap } from "./sourceMap.types";
+import type { SourceMap } from "./sourceMap.types";
 
 export type Entry = {
     path: string; // actual path from os

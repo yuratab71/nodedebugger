@@ -1,37 +1,32 @@
-import { IStrategy } from "../types/strategy";
+import type { IStrategy } from "../types/strategy.types";
 import { Logger } from "./logger";
 
 type Task<T> = () => Promise<T>;
 
 export class TaskQueueRunner {
-    logger: Logger;
-    queue: Task<any>[] = [];
-    private isProcessing: boolean = false;
+    static #instance: TaskQueueRunner | null;
 
-    static #instance: TaskQueueRunner;
+    private readonly logger: Logger;
+    private readonly queue: Task<unknown>[] = [];
+    private isProcessing = false;
 
-    static instance(): TaskQueueRunner {
-        if (!TaskQueueRunner.#instance) {
+    private constructor() {
+        this.logger = new Logger("QUEUE PROCESSOR");
+    }
+
+    public static instance(): TaskQueueRunner {
+        if (TaskQueueRunner.#instance === null) {
             TaskQueueRunner.#instance = new TaskQueueRunner();
         }
 
         return TaskQueueRunner.#instance;
     }
 
-    private constructor() {
-        this.logger = new Logger("QUEUE PROCESSOR");
-    }
-
-    enqueue<T>(strategy: IStrategy<T>): Promise<void> {
-        return new Promise((resolve, reject) => {
+    public enqueue<T>(strategy: IStrategy<T>): Promise<void> {
+        return new Promise((resolve) => {
             this.queue.push(async () => {
-                try {
-                    const result = await strategy.run();
-
-                    resolve(result);
-                } catch (error) {
-                    reject(error);
-                }
+                await strategy.run();
+                resolve();
             });
             this.processQueue();
         });
@@ -46,7 +41,7 @@ export class TaskQueueRunner {
 
         while (this.queue.length > 0) {
             const task = this.queue.shift();
-            if (task) {
+            if (task != null) {
                 await task();
                 this.logger.log("finished task");
             }

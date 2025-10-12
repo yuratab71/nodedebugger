@@ -1,33 +1,27 @@
-import { spawn, ChildProcessWithoutNullStreams } from "node:child_process";
+import type { ChildProcessWithoutNullStreams } from "node:child_process";
+import { spawn } from "node:child_process";
 
 type SubprocessInitParams = {
     entry: string;
-    onData: (data: any) => void;
-    onError: (data: any) => void;
+    onData: (data: unknown) => void;
+    onError: (data: unknown) => void;
     onExit: (code: number, signal: NodeJS.Signals) => void;
 };
 
 export default class Subprocess {
-    private child: ChildProcessWithoutNullStreams | null;
-    private arguments = [
+    static #instance: Subprocess | null;
+
+    public entry: string;
+
+    private readonly child: ChildProcessWithoutNullStreams | null;
+    private readonly arguments = [
         "--inspect-brk",
         "--max-old-space-size=1024",
         "--trace-gc",
     ];
-    private envs = {
+    private readonly envs = {
         PORT: "3030",
     };
-
-    entry: string;
-
-    static #instance: Subprocess | null;
-    static instance(params: SubprocessInitParams) {
-        if (!Subprocess.#instance) {
-            Subprocess.#instance = new Subprocess(params);
-        }
-
-        return Subprocess.#instance;
-    }
 
     private constructor({
         entry,
@@ -45,19 +39,29 @@ export default class Subprocess {
         this.child.on("exit", onExit);
     }
 
-    static isRunning(): boolean {
+    public static instance(params: SubprocessInitParams): Subprocess {
+        if (Subprocess.#instance == null) {
+            Subprocess.#instance = new Subprocess(params);
+        }
+
+        return Subprocess.#instance;
+    }
+
+    public static isRunning(): boolean {
         return (
-            !Subprocess.#instance?.child?.killed &&
-            Subprocess.#instance?.child?.exitCode === null
+            Subprocess.#instance?.child?.killed != null &&
+            Subprocess.#instance.child.exitCode === null
         );
     }
 
-    static kill(): void {
-        if (Subprocess.#instance?.child?.kill("SIGKILL")) {
+    public static kill(): boolean {
+        if (Subprocess.#instance?.child === null) return false;
+
+        if (Subprocess.#instance?.child.kill("SIGKILL")) {
             Subprocess.#instance = null;
-            console.log("Subprocess killed successfully");
+            return true;
         } else {
-            console.log("Failed to kill subprocess");
+            return false;
         }
     }
 }

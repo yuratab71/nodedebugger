@@ -1,15 +1,19 @@
-import { Entry } from "../../../main/types/fileManager.types";
-import { RichTreeView, TreeViewBaseItem } from "@mui/x-tree-view";
 import { Box } from "@mui/material";
-import { Component, ReactNode, SyntheticEvent } from "react";
-import { GlobalState } from "@/renderer/redux/store";
-import {
+import type { TreeViewBaseItem } from "@mui/x-tree-view";
+import { RichTreeView } from "@mui/x-tree-view";
+import type { ReactNode, SyntheticEvent } from "react";
+import { Component } from "react";
+import { connect } from "react-redux";
+import type { Entry } from "../../../main/types/fileManager.types";
+import type {
     AddParsedFileAction,
+    UpdateCurrentFileAction,
+} from "../../redux/parsedFiles.reducer";
+import {
     ADD_PARSED_FILE,
     UPDATE_CURRENT_FILE,
-    UpdateCurrentFileAction,
-} from "@/renderer/redux/parsedFiles.reducer";
-import { connect } from "react-redux";
+} from "../../redux/parsedFiles.reducer";
+import type { GlobalState } from "../../redux/store";
 
 type TreeViewBaseItemExtended = TreeViewBaseItem & { inspectorUrl: string };
 
@@ -26,16 +30,15 @@ interface DispatchProps {
 type FileExplorerProps = StateProps & DispatchProps;
 
 class FileExplorer extends Component<FileExplorerProps> {
-    treeItems: TreeViewBaseItem[] = [];
+    private readonly treeItems: TreeViewBaseItem[] = [];
 
-    override componentDidMount() {
-        console.log("File explorer did mount");
+    public override componentDidMount() {
         window.electronAPI.onParsedFilesUpdate((entries: Entry[]) => {
             this.props.addParsedFiles([...entries]);
         });
     }
 
-    onItemFocus = async (
+    private readonly onItemFocus = async (
         _: SyntheticEvent<Element, Event> | null,
         itemId: string,
     ) => {
@@ -47,7 +50,7 @@ class FileExplorer extends Component<FileExplorerProps> {
         );
     };
 
-    onItemClick = async (
+    private readonly onItemClick = async (
         _: React.MouseEvent<Element, MouseEvent>,
         itemId: string,
     ) => {
@@ -59,7 +62,7 @@ class FileExplorer extends Component<FileExplorerProps> {
         );
     };
 
-    override render(): ReactNode {
+    public override render(): ReactNode {
         return (
             <Box width="182px" height="90vh">
                 <RichTreeView
@@ -72,7 +75,7 @@ class FileExplorer extends Component<FileExplorerProps> {
                                 label: "@:" + entry.name + entry.extension,
                                 inspectorUrl: entry.inspectorUrl,
                                 children: [
-                                    ...entry?.sources?.map<TreeViewBaseItem>(
+                                    ...entry.sources.map<TreeViewBaseItem>(
                                         (el: string) => {
                                             return {
                                                 id: el ?? "undefined",

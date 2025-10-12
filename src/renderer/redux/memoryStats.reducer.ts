@@ -1,4 +1,4 @@
-import { Runtime } from "@/main/types/runtime.types";
+import type { Runtime } from "../../main/types/runtime.types";
 
 export type MemoryStatsState = Runtime.MemoryStats;
 

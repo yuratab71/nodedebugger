@@ -1,23 +1,23 @@
-import { DebuggingResponse } from "./modules/debuggigmessages";
-import { Entry } from "./modules/fileManager";
-import fs from "fs";
-import { SourceMapConsumer } from "source-map-js";
-import { Breakpoint, LocationByUrl } from "./types/debugger";
-import { Runtime } from "./types/runtime.types";
-import { Debugger } from "electron";
+import type { Entry } from "./modules/fileManager";
+import type fs from "fs";
+import type { SourceMapConsumer } from "source-map-js";
+import type { Breakpoint } from "./types/debugger";
+import { LocationByUrl } from "./types/debugger";
+import type { Runtime } from "./types/runtime.types";
+import type { Debugger } from "electron";
 
-type Result<R> = {
+declare type Result<R> = {
     id: number;
     result: R;
 };
 
-type Parameters<P> = {
+declare type Parameters<P> = {
     id: number;
     method: string;
     params?: P;
 };
 
-type Error = {
+declare type InspectorErrorResp = {
     id: number;
     error: {
         code: number;
@@ -26,7 +26,7 @@ type Error = {
     };
 };
 
-type Event<R> = {
+declare type Event<R> = {
     method: string;
     params: R;
 };
@@ -51,12 +51,12 @@ declare global {
             ) => void;
             onRootDirResolve: (callback: (rootDir: string) => void) => void;
             getFileStructure: (src: string) => Promise<Entry[]>;
-            getFileContent: (src: string) => Promise<any>;
+            getFileContent: (src: string) => Promise<string>;
             getSourceMap: (src: string) => Promise<SourceMapConsumer | null>;
             getRootDir: (callback: (rootDir: string) => void) => void;
             onParsedFilesUpdate: (callback: (entries: Entry[]) => void) => void;
             onRegisterBreakpoint: (callback: (brk: Breakpoint) => void) => void;
-            getObjectId: (name: string) => Promise<any>;
+            getObjectId: (name: string) => Promise<string>;
         };
     }
 }

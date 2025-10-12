@@ -1,7 +1,8 @@
-import { Typography, Box } from "@mui/material";
-import { Component, ReactNode } from "react";
-import { Status } from "../../../main/constants/status";
-import { Runtime } from "../../../main/types/runtime.types";
+import { Box, Typography } from "@mui/material";
+import type { ReactNode } from "react";
+import { Component } from "react";
+import type { Status } from "../../../main/constants/status";
+import type { Runtime } from "../../../main/types/runtime.types";
 
 interface FooterProps {}
 interface FoterState {
@@ -10,11 +11,11 @@ interface FoterState {
 }
 
 export default class Footer extends Component<FooterProps, FoterState> {
-    constructor(props: FooterProps) {
+    public constructor(props: FooterProps) {
         super(props);
     }
 
-    override render(): ReactNode {
+    public override render(): ReactNode {
         return (
             <Box
                 sx={{
@@ -28,7 +29,8 @@ export default class Footer extends Component<FooterProps, FoterState> {
                     display: "flex",
                     justifyContent: "space-between",
                     zIndex: 10000,
-                }}>
+                }}
+            >
                 <Typography fontSize="12px">
                     Nquisitor the NodeJS debugger
                 </Typography>

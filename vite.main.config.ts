@@ -1,5 +1,5 @@
-import { defineConfig } from "vite";
 import path from "path";
+import { defineConfig } from "vite";
 
 // https://vitejs.dev/config
 export default defineConfig({
@@ -10,12 +10,4 @@ export default defineConfig({
         watch: {},
     },
     optimizeDeps: { exclude: ["ws", "bufferutil", "utf-8-validate"] },
-    /* resolve: {
-        alias: [
-            {
-                find: "@",
-                replacement: path.resolve(__dirname, "./src"),
-            },
-        ],
-    }, */
 });

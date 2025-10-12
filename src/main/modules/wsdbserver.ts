@@ -1,46 +1,29 @@
 import { Status } from "../constants/status";
-import { RawData, WebSocket } from "ws";
-import { DebuggingResponse } from "../types/debugger";
+import type { RawData } from "ws";
+import { WebSocket } from "ws";
 import { Logger } from "./logger";
-import { Result } from "@main/global";
+import type { InspectorMessage } from "../types/message.types";
 
 type WsInitParams = {
     url?: string;
     onStatusUpdateCallback: (status: Status) => void;
-    onMessageCallback: (msg: DebuggingResponse) => void;
+    onMessageCallback: (msg: InspectorMessage) => void;
 };
 
 export class WS {
+    static #instance: WS;
+    static #connstr: string;
+
+    public url: string;
+    public status = Status.NOT_ACTIVE;
+
     private readonly webSocket: WebSocket;
     private readonly MAX_RETRIES = 3; // TODO: move this to .env file
     private readonly RETRY_DELAY = 50;
-    private logger: Logger;
-    url: string;
-    status = Status.NOT_ACTIVE;
-    private pendingRequests: Map<string | undefined, any>;
+    private readonly logger: Logger;
+    private readonly pendingRequests: Map<string | undefined, unknown>;
 
-    static #instance: WS;
-    static #connstr: string;
-    static instance(params?: WsInitParams) {
-        if (
-            (!WS.#instance && !!params) ||
-            (!!params && params?.url != WS.#connstr)
-        ) {
-            WS.#instance = new WS(params);
-        }
-
-        return WS.#instance;
-    }
-
-    static setConnstr(connStr: string) {
-        console.log(`received string: ${connStr}`);
-        WS.#connstr = connStr;
-    }
-
-    private constructor({
-        onStatusUpdateCallback,
-        onMessageCallback,
-    }: WsInitParams) {
+    private constructor(params: WsInitParams) {
         this.logger = new Logger("WS");
         this.pendingRequests = new Map();
 
@@ -52,44 +35,56 @@ export class WS {
 
         this.webSocket.on("error", () => {
             this.status = Status.ERROR;
-            onStatusUpdateCallback(this.status);
+            params.onStatusUpdateCallback(this.status);
         });
 
         this.webSocket.on("open", () => {
             this.status = Status.CONNECTED;
-            onStatusUpdateCallback(this.status);
+            params.onStatusUpdateCallback(this.status);
         });
 
         this.webSocket.on("close", () => {
             this.status = Status.DISCONNECTED;
-            onStatusUpdateCallback(this.status);
+            params.onStatusUpdateCallback(this.status);
         });
 
         this.webSocket.on("message", (data: RawData) => {
             try {
-                const resp = JSON.parse(data.toString()) as Result<any>;
-                this.pendingRequests.set(resp.id?.toString(), resp);
-                onMessageCallback(resp);
+                const resp = JSON.parse(data.toString()) as InspectorMessage;
+                this.pendingRequests.set(resp.id.toString(), resp);
+                params.onMessageCallback(resp);
             } catch (e) {
-                console.debug(e);
+                this.logger.error(e as string);
             }
         });
     }
 
-    static reset(params: WsInitParams) {
+    public static instance(params?: WsInitParams): WS {
+        if (params != undefined) {
+            WS.#instance = new WS(params);
+        }
+
+        return WS.#instance;
+    }
+
+    public static setConnstr(connStr: string): void {
+        WS.#connstr = connStr;
+    }
+
+    public static reset(params: WsInitParams): WS {
         WS.#instance = new WS(params);
 
         return WS.#instance;
     }
 
-    static isConnected(url?: string): boolean {
+    public static isConnected(url?: string): boolean {
         const instance = WS.instance();
 
-        if (url && instance?.url != url) return false;
+        if (instance.url != url) return false;
 
-        if (instance?.url) {
+        if (instance.url) {
             return (
-                WS.#instance?.webSocket?.readyState === WebSocket.OPEN &&
+                WS.#instance.webSocket.readyState === WebSocket.OPEN &&
                 instance.url === WS.#connstr
             );
         }
@@ -97,7 +92,7 @@ export class WS {
         return false;
     }
 
-    send(message: string): void {
+    public send(message: string): void {
         this.webSocket.send(message);
     }
     /**
@@ -105,16 +100,21 @@ export class WS {
      * @param {number} id - must be passed to function to know which id look in responses
      * @param {string} message - whole message that is send to inspector, must contain id in it!
      */
-    async sendAndReceive<T>(id: number, message: string): Promise<T | null> {
+    public async sendAndReceive<T>(
+        id: number,
+        message: string,
+    ): Promise<T | null> {
         this.send(message);
 
         let isResolved = false;
-        return new Promise<T | null>((resolve, _) => {
+        return await new Promise<T | null>((resolve, _) => {
             for (let i = 0; i < this.MAX_RETRIES; i++) {
                 if (isResolved) return;
                 setTimeout(() => {
-                    const resp = this.pendingRequests.get(id.toString());
-                    if (resp) {
+                    const resp: T = this.pendingRequests.get(
+                        id.toString(),
+                    ) as T;
+                    if (resp != undefined) {
                         resolve(resp);
                         this.pendingRequests.delete(id.toString());
                         isResolved = true;

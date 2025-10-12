@@ -1,38 +1,41 @@
+import winston from "winston";
+
 export const passMessage = (message: string): string => {
-    return `[NQUISITOR ${new Date().toTimeString().split(" ")[0]}]: ${message}`;
+    return `[NQUISITOR ${new Date().toTimeString().split(" ")[0] ?? "unknown"}]: ${message}`;
 };
 
 export class Logger {
-    private name: string;
-    private red = "\x1b[31m";
-    private green = "\x1b[32m";
-    private yellow = "\x1b[33m";
-    private resetColor = "\x1b[0m";
-    constructor(name: string) {
-        this.name = name;
+    private readonly logger: winston.Logger;
+
+    /**    private readonly name: string;
+    private readonly red = "\x1b[31m";
+    private readonly green = "\x1b[32m";
+    private readonly yellow = "\x1b[33m";
+    private readonly resetColor = "\x2b[0m"; */
+
+    public constructor(name: string) {
+        this.logger = winston.createLogger({
+            level: "info",
+            format: winston.format.json(),
+            defaultMeta: { service: name },
+            transports: [new winston.transports.Console()],
+        });
     }
 
-    log(log?: any | undefined) {
-        console.log(
-            this.green + `[${this.name}]: ` + this.resetColor + `${log}`,
-        );
+    public log(log: string): void {
+        this.logger.info(log);
     }
 
-    warn(warn: any) {
-        console.log(
-            this.yellow + `[${this.name}]: ` + this.resetColor + `${warn}`,
-        );
+    public warn(warn: string): void {
+        this.logger.warn(warn);
     }
 
-    error(error: any) {
-        console.log(
-            this.red + `[${this.name}]: ` + this.resetColor + `${error}`,
-        );
+    public error(error: string): void {
+        this.logger.error(error);
     }
 
-    group(obj: any, name: string = "Object: "): void {
-        console.log(`// ${name}: ${this.name}`);
-        console.log(obj);
-        console.log("\/\/");
+    public group(obj: unknown, name = "Object: "): void {
+        this.logger.info(name);
+        this.logger.info(obj);
     }
 }

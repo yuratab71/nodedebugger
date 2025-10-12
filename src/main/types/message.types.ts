@@ -1,6 +1,6 @@
-import { Error, Result, Event } from "../global";
-import { Debugger, DebuggerEvents } from "./debugger.types";
-import { Runtime } from "./runtime.types";
+import type { Event, InspectorErrorResp, Result } from "../global";
+import type { Debugger, DebuggerEvents } from "./debugger.types";
+import type { Runtime } from "./runtime.types";
 
 type ResultCombined = Debugger.SetBreakpointByUrlResult &
     Debugger.EnableResult &
@@ -13,4 +13,4 @@ type EventCombined = DebuggerEvents.Paused &
 
 export type InspectorMessage = Result<ResultCombined> &
     Event<EventCombined> &
-    Error;
+    InspectorErrorResp;

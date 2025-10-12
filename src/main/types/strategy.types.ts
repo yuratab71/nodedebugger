@@ -1,8 +1,8 @@
-import { WS } from "../modules/wsdbserver";
-import Subprocess from "../modules/subprocess";
-import { FileManager } from "../modules/fileManager";
-import { DebuggerDomain } from "../domains/debugger";
-import { RuntimeDomain } from "../domains/runtime";
+import type { WS } from "../modules/wsdbserver";
+import type Subprocess from "../modules/subprocess";
+import type { FileManager } from "../modules/fileManager";
+import type { DebuggerDomain } from "../domains/debugger";
+import type { RuntimeDomain } from "../domains/runtime";
 
 export type MainContext = {
     ws?: WS;
@@ -14,5 +14,5 @@ export type MainContext = {
 
 export interface IStrategy<T> {
     context: T;
-    run(): Promise<void>;
+    run: () => Promise<void>;
 }

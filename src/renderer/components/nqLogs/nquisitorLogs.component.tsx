@@ -1,15 +1,16 @@
-import { Component, ReactNode } from "react";
+import type { ReactNode } from "react";
+import { Component } from "react";
 import { LogTerminal } from "../common/logTerminal.component";
 
 interface NqLogsProps {}
 interface NqLogsState {}
 
 export class NqLogs extends Component<NqLogsProps, NqLogsState> {
-    constructor(props: NqLogsProps) {
+    public constructor(props: NqLogsProps) {
         super(props);
     }
 
-    override render(): ReactNode {
+    public override render(): ReactNode {
         return <LogTerminal onLogs={window.electronAPI.onProcessLog} />;
     }
 }

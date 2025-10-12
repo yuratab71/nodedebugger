@@ -1,4 +1,4 @@
-import { Status } from "@/main/constants/status";
+import { Status } from "../../main/constants/status";
 
 export type WebSocketStatusState = {
     status: Status;

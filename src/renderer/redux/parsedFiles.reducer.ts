@@ -1,4 +1,4 @@
-import { Entry } from "@/main/types/fileManager.types";
+import type { Entry } from "../../main/types/fileManager.types";
 
 export type ParsedFilesState = {
     entries: Entry[];

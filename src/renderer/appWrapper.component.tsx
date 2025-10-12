@@ -1,23 +1,21 @@
 import { ThemeProvider } from "@emotion/react";
 import { CssBaseline } from "@mui/material";
 import { Box } from "@mui/system";
-import { Component, ReactNode } from "react";
-import { theme } from "./theme";
+import type { ReactNode } from "react";
+import { Component } from "react";
 import Footer from "./components/footer/footer.component";
 import Header from "./components/header/header.component";
+import { theme } from "./theme";
 
 interface AppWrapperProps {
     children: ReactNode;
 }
-
-interface AppWrapperState {}
-
-export class AppWrapper extends Component<AppWrapperProps, AppWrapperState> {
-    constructor(props: AppWrapperProps) {
+export class AppWrapper extends Component<AppWrapperProps> {
+    public constructor(props: AppWrapperProps) {
         super(props);
     }
 
-    override render(): ReactNode {
+    public override render(): ReactNode {
         const { children } = this.props;
 
         return (
@@ -28,7 +26,8 @@ export class AppWrapper extends Component<AppWrapperProps, AppWrapperState> {
                         height: "100%",
                         display: "flex",
                         flexDirection: "column",
-                    }}>
+                    }}
+                >
                     <CssBaseline />
                     <Header />
 
@@ -37,7 +36,8 @@ export class AppWrapper extends Component<AppWrapperProps, AppWrapperState> {
                         sx={{
                             flexGrow: 1,
                             width: "100%",
-                        }}>
+                        }}
+                    >
                         {children}
                     </Box>
                     <Footer />
