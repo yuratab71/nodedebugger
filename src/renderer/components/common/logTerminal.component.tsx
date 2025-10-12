@@ -10,33 +10,33 @@ interface LogTerminalState {
 }
 
 export class LogTerminal extends Component<LogTerminalProps, LogTerminalState> {
-    private logEndRef = createRef<HTMLDivElement>();
+    private readonly logEndRef = createRef<HTMLDivElement>();
 
-    constructor(props: LogTerminalProps) {
+    public constructor(props: LogTerminalProps) {
         super(props);
         this.state = {
             logs: [],
         };
     }
 
-    override componentDidMount() {
+    public override componentDidMount(): void {
         this.props.onLogs(this.handleLogMessage);
     }
 
-    override componentDidUpdate() {
+    public override componentDidUpdate(): void {
         this.scrollToBottom();
     }
 
-    scrollToBottom() {
+    private scrollToBottom(): void {
         if (this.logEndRef.current) {
             this.logEndRef.current.scrollIntoView({ behavior: "smooth" });
         }
     }
 
-    handleLogMessage = (message: string) => {
+    private readonly handleLogMessage = (message: string): void => {
         this.setState((prevState) => ({ logs: [...prevState.logs, message] }));
     };
-    override render(): ReactNode {
+    public override render(): ReactNode {
         const { logs } = this.state;
         return (
             <Paper
@@ -50,14 +50,16 @@ export class LogTerminal extends Component<LogTerminalProps, LogTerminalState> {
                     width: "100%",
                     overflowY: "auto",
                     borderRadius: 1,
-                }}>
+                }}
+            >
                 {logs.map((log, i) => (
                     <Typography
                         key={i}
                         variant="body2"
                         sx={{
                             fontSize: "12px",
-                        }}>
+                        }}
+                    >
                         {log}
                     </Typography>
                 ))}

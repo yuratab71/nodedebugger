@@ -1,6 +1,6 @@
-import { RuntimeDomain } from "@main/domains/runtime";
-import { Runtime } from "@main/types/runtime";
-import { IStrategy } from "@main/types/strategy";
+import { RuntimeDomain } from "../domains/runtime";
+import { Runtime } from "../types/runtime.types";
+import { IStrategy } from "../types/strategy.types";
 
 type RuntimeEvaluateStrategyContext = {
     expression: Runtime.JavascriptExpression;
@@ -10,17 +10,16 @@ type RuntimeEvaluateStrategyContext = {
 export class RuntimeEvaluateStrategy
     implements IStrategy<RuntimeEvaluateStrategyContext>
 {
-    context: RuntimeEvaluateStrategyContext;
+    public readonly context: RuntimeEvaluateStrategyContext;
 
-    constructor(context: RuntimeEvaluateStrategyContext) {
+    public constructor(context: RuntimeEvaluateStrategyContext) {
         this.context = context;
     }
 
-    async run(): Promise<void> {
+    public async run(): Promise<void> {
         const exp = this.context.expression.toString();
-        const resp = await this.context.runtimeDomain.evaluateExpression(exp);
+        await this.context.runtimeDomain.evaluateExpression(exp);
 
-        console.log(resp);
         return;
     }
 }

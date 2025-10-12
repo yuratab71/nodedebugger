@@ -1,15 +1,15 @@
-import { Entry } from "../../../main/types/fileManager.types";
-import { RichTreeView, TreeViewBaseItem } from "@mui/x-tree-view";
 import { Box } from "@mui/material";
-import { Component, ReactNode, SyntheticEvent } from "react";
-import { GlobalState } from "@/renderer/redux/store";
+import { RichTreeView, TreeViewBaseItem } from "@mui/x-tree-view";
+import { Component, ReactNode } from "react";
+import { connect } from "react-redux";
 import {
-    AddParsedFileAction,
     ADD_PARSED_FILE,
+    AddParsedFileAction,
     UPDATE_CURRENT_FILE,
     UpdateCurrentFileAction,
 } from "@/renderer/redux/parsedFiles.reducer";
-import { connect } from "react-redux";
+import { Entry } from "../../../main/types/fileManager.types";
+import { GlobalState } from "../../redux/store";
 
 type TreeViewBaseItemExtended = TreeViewBaseItem & { inspectorUrl: string };
 
@@ -26,40 +26,39 @@ interface DispatchProps {
 type FileExplorerProps = StateProps & DispatchProps;
 
 class FileExplorer extends Component<FileExplorerProps> {
-    treeItems: TreeViewBaseItem[] = [];
+    //    private readonly treeItems: TreeViewBaseItem[] = [];
 
-    override componentDidMount() {
-        console.log("File explorer did mount");
+    public override componentDidMount(): void {
         window.electronAPI.onParsedFilesUpdate((entries: Entry[]) => {
             this.props.addParsedFiles([...entries]);
         });
     }
 
-    onItemFocus = async (
+    /**   private readonly onItemFocus = async (
         _: SyntheticEvent<Element, Event> | null,
         itemId: string,
-    ) => {
+    ): Promise<void> => {
         if (itemId === this.props.currentFileUrl) return;
 
         this.props.updateFile(
             itemId,
-            await window.electronAPI.getFileContent(itemId),
+            (await window.electronAPI.getFileContent(itemId)) as string,
         );
-    };
+    }; */
 
-    onItemClick = async (
+    public readonly onItemClick = async (
         _: React.MouseEvent<Element, MouseEvent>,
         itemId: string,
-    ) => {
+    ): Promise<void> => {
         if (itemId === this.props.currentFileUrl) return;
 
         this.props.updateFile(
             itemId,
-            await window.electronAPI.getFileContent(itemId),
+            (await window.electronAPI.getFileContent(itemId)) as string,
         );
     };
 
-    override render(): ReactNode {
+    public override render(): ReactNode {
         return (
             <Box width="182px" height="90vh">
                 <RichTreeView
@@ -72,7 +71,7 @@ class FileExplorer extends Component<FileExplorerProps> {
                                 label: "@:" + entry.name + entry.extension,
                                 inspectorUrl: entry.inspectorUrl,
                                 children: [
-                                    ...entry?.sources?.map<TreeViewBaseItem>(
+                                    ...entry.sources.map<TreeViewBaseItem>(
                                         (el: string) => {
                                             return {
                                                 id: el ?? "undefined",

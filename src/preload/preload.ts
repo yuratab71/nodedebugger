@@ -1,28 +1,28 @@
 import { contextBridge, ipcRenderer } from "electron";
+import { Runtime } from "@/main/types/runtime.types";
 import {
-    ON_PROCESS_LOG_UPDATE,
-    RUN_RESUME_EXECUTION,
+    GET_FILE_CONTENT,
+    GET_FILE_STRUCTURE,
+    GET_OBJECT_ID,
+    GET_ROOT_DIR,
+    GET_SCRIPT_SOURCE,
+    GET_SOURCE_MAP,
+    ON_FILE_STRUCTURE_RESOLVE,
     ON_MEMORY_USAGE_UPDATE,
+    ON_PARSED_FILES_UPDATE,
+    ON_PROCESS_LOG_UPDATE,
+    ON_REGISTER_BREAKPOINT,
+    ON_ROOT_DIR_RESOLVE,
     ON_WS_CONNECTION_STATUS_UPDATE,
+    RUN_RESUME_EXECUTION,
     RUN_START_SUBPROCESS,
     RUN_TERMINATE_SUBPROCESS,
-    SET_DIRECTORY,
-    GET_FILE_STRUCTURE,
-    GET_FILE_CONTENT,
-    GET_SCRIPT_SOURCE,
-    SET_BREAKPOINT_BY_URL,
     SET_BREAKPOINT_BY_SCRIPT_ID,
-    GET_ROOT_DIR,
-    ON_ROOT_DIR_RESOLVE,
-    ON_FILE_STRUCTURE_RESOLVE,
-    GET_SOURCE_MAP,
-    ON_PARSED_FILES_UPDATE,
-    ON_REGISTER_BREAKPOINT,
-    GET_OBJECT_ID,
+    SET_BREAKPOINT_BY_URL,
+    SET_DIRECTORY,
 } from "../main/constants/commands";
-import { Entry } from "../main/types/fileManager.types";
 import { Debugger } from "../main/types/debugger.types";
-import { Runtime } from "@/main/types/runtime.types";
+import { Entry } from "../main/types/fileManager.types";
 
 const Window: Pick<Window, "electronAPI"> = {
     electronAPI: {
@@ -70,7 +70,6 @@ const Window: Pick<Window, "electronAPI"> = {
         onRegisterBreakpoint: (
             callback: (brk: Debugger.Breakpoint) => void,
         ) => {
-            console.log("Here on register brk");
             ipcRenderer.on(ON_REGISTER_BREAKPOINT, (_, brk) => callback(brk));
         },
         getObjectId: (name: string) => ipcRenderer.invoke(GET_OBJECT_ID, name),

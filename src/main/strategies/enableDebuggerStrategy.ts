@@ -1,9 +1,9 @@
-import { RuntimeDomain } from "../domains/runtime";
-import { DebuggerDomain } from "../domains/debugger";
-import { IStrategy } from "../types/strategy.types";
 import { Ids } from "../constants/debuggerMessageIds";
-import { WS } from "../modules/wsdbserver";
 import { Status } from "../constants/status";
+import { DebuggerDomain } from "../domains/debugger";
+import { RuntimeDomain } from "../domains/runtime";
+import { WS } from "../modules/wsdbserver";
+import { IStrategy } from "../types/strategy.types";
 
 type EnableDebuggerContext = {
     debuggerDomain: DebuggerDomain;
@@ -12,13 +12,13 @@ type EnableDebuggerContext = {
 };
 
 export class EnableDebuggerTask implements IStrategy<EnableDebuggerContext> {
-    context: EnableDebuggerContext;
+    public context: EnableDebuggerContext;
 
-    constructor(context: EnableDebuggerContext) {
+    public constructor(context: EnableDebuggerContext) {
         this.context = context;
     }
 
-    async run(): Promise<void> {
+    public async run(): Promise<void> {
         for (let i = 0; i < 10; i++) {
             if (this.context.ws.status === Status.CONNECTED) {
                 await this.context.debuggerDomain.enable(Ids.DEBUGGER.ENABLE);

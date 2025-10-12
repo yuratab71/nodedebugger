@@ -1,9 +1,9 @@
-import { spawn, ChildProcessWithoutNullStreams } from "node:child_process";
+import { ChildProcessWithoutNullStreams, spawn } from "node:child_process";
 
 type SubprocessInitParams = {
     entry: string;
-    onData: (data: any) => void;
-    onError: (data: any) => void;
+    onData: (data: unknown) => void;
+    onError: (data: unknown) => void;
     onExit: (code: number, signal: NodeJS.Signals) => void;
 };
 
@@ -18,10 +18,10 @@ export default class Subprocess {
         PORT: "3030",
     };
 
-    entry: string;
+    public entry: string;
 
     static #instance: Subprocess | null;
-    static instance(params: SubprocessInitParams) {
+    public static instance(params: SubprocessInitParams): Subprocess {
         if (!Subprocess.#instance) {
             Subprocess.#instance = new Subprocess(params);
         }
@@ -45,19 +45,19 @@ export default class Subprocess {
         this.child.on("exit", onExit);
     }
 
-    static isRunning(): boolean {
+    public static isRunning(): boolean {
         return (
             !Subprocess.#instance?.child?.killed &&
             Subprocess.#instance?.child?.exitCode === null
         );
     }
 
-    static kill(): void {
+    public static kill(): boolean {
         if (Subprocess.#instance?.child?.kill("SIGKILL")) {
             Subprocess.#instance = null;
-            console.log("Subprocess killed successfully");
-        } else {
-            console.log("Failed to kill subprocess");
+            return true;
         }
+
+        return false;
     }
 }

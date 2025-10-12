@@ -2,46 +2,55 @@ import {
     app,
     BrowserWindow,
     dialog,
-    ipcMain,
     IpcMainEvent,
     IpcMainInvokeEvent,
+    ipcMain,
 } from "electron";
 import "dotenv/config";
+import path from "path";
+import { SourceMapConsumer } from "source-map-js";
 import {
     GET_FILE_CONTENT,
     GET_FILE_STRUCTURE,
+    GET_OBJECT_ID,
     GET_SOURCE_MAP,
     ON_FILE_STRUCTURE_RESOLVE,
-    ON_ROOT_DIR_RESOLVE,
-    ON_PROCESS_LOG_UPDATE,
-    RUN_RESUME_EXECUTION,
-    SET_BREAKPOINT_BY_URL,
-    SET_DIRECTORY,
     ON_MEMORY_USAGE_UPDATE,
+    ON_PARSED_FILES_UPDATE,
+    ON_PROCESS_LOG_UPDATE,
+    ON_REGISTER_BREAKPOINT,
+    ON_ROOT_DIR_RESOLVE,
     ON_WS_CONNECTION_STATUS_UPDATE,
+    RUN_RESUME_EXECUTION,
     RUN_START_SUBPROCESS,
     RUN_TERMINATE_SUBPROCESS,
-    ON_PARSED_FILES_UPDATE,
-    ON_REGISTER_BREAKPOINT,
-    GET_OBJECT_ID,
+    SET_BREAKPOINT_BY_URL,
+    SET_DIRECTORY,
 } from "./constants/commands";
 import { MEMORY_USAGE_UPDATE_DELAY } from "./constants/debugger";
 import { Ids } from "./constants/debuggerMessageIds";
 import { Status } from "./constants/status";
 import { DebuggerDomain } from "./domains/debugger";
 import { RuntimeDomain } from "./domains/runtime";
-import { Entry } from "./types/fileManager.types";
 import { FileManager } from "./modules/fileManager";
 import { Logger, passMessage } from "./modules/logger";
 import Subprocess from "./modules/subprocess";
-import { WS } from "./modules/wsdbserver";
-import { Debugger, DebuggerEvents } from "./types/debugger.types";
-import { StartSubprocessTask } from "./strategies/startSubprocessStrategyTask";
 import { TaskQueueRunner } from "./modules/taskQueueRunner";
-import { GetConnectionStringTask } from "./strategies/getConnectionStringStrategyTask";
+import { WS } from "./modules/wsdbserver";
 import { EnableDebuggerTask } from "./strategies/enableDebuggerStrategy";
-import path from "path";
+import { GetConnectionStringTask } from "./strategies/getConnectionStringStrategyTask";
+import { StartSubprocessTask } from "./strategies/startSubprocessStrategyTask";
+import { Debugger, DebuggerEvents } from "./types/debugger.types";
+import { Entry } from "./types/fileManager.types";
 import { InspectorMessage } from "./types/message.types";
+import { Runtime } from "./types/runtime.types";
+
+/**
+     "assist": {
+        "enabled": true,
+        "actions": { "source": { "organizeImports": "on" } }
+    }
+  */
 
 declare const MAIN_WINDOW_VITE_NAME: string | undefined;
 declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string | undefined;
@@ -64,8 +73,8 @@ let fileManager: FileManager;
 // const queueProcessor = QueueProcessor.instance();
 
 let mainWindow: BrowserWindow;
-const logger = new Logger("IPC MAIN");
-const taskRunner = TaskQueueRunner.instance();
+const logger: Logger = new Logger("IPC MAIN");
+const taskRunner: TaskQueueRunner = TaskQueueRunner.instance();
 
 // =============================================
 
@@ -73,7 +82,7 @@ if (require("electron-squirrel-startup")) {
     app.quit();
 }
 
-const sendStatus = (st: Status) => {
+const sendStatus = (st: Status): void => {
     status = st;
     mainWindow.webContents.send(ON_WS_CONNECTION_STATUS_UPDATE, status);
 };
@@ -106,13 +115,23 @@ const createWindow = (): void => {
     // prevent subprocess to continue execution on linux
     process.on("SIGINT", () => {
         logger.log("received SIGINT signal");
-        Subprocess.kill();
+        if (Subprocess.kill()) {
+            logger.log("Subprocess killed succesfully");
+        } else {
+            logger.log("Failed to kill subprocess");
+        }
+
         process.exit(0);
     });
 
     process.on("SIGTERM", () => {
         logger.log("received SIGTERM signal");
-        Subprocess.kill();
+        if (Subprocess.kill()) {
+            logger.log("Subprocess killed succesfully");
+        } else {
+            logger.log("Failed to kill subprocess");
+        }
+
         process.exit(0);
     });
 
@@ -147,7 +166,7 @@ app.on("activate", () => {
     }
 });
 
-const processWebSocketMessageCallback = (message: InspectorMessage) => {
+const processWebSocketMessageCallback = (message: InspectorMessage): void => {
     if (message.id) {
         switch (message.id) {
             case Ids.RUNTIME.GET_MEMORY_USAGE:
@@ -239,7 +258,10 @@ ipcMain.handle(GET_OBJECT_ID, onGetObjectIdHandler);
 ipcMain.on(SET_BREAKPOINT_BY_URL, onSetBreakpointByUrlHandler);
 ipcMain.on(RUN_RESUME_EXECUTION, onDebuggerResumeHandler);
 
-async function onGetObjectIdHandler(_: IpcMainInvokeEvent, name: string) {
+async function onGetObjectIdHandler(
+    _: IpcMainInvokeEvent,
+    name: string,
+): Promise<Runtime.EvaluateResult | null> {
     const scope = await runtimeDomain.globalLexicalScopeNames();
     logger.log("scope");
     logger.group(scope);
@@ -333,24 +355,30 @@ function onGetFileContentHandler(_: IpcMainInvokeEvent, src: string): string {
     return "";
 }
 
-function onGetFileStructureHandler(_: IpcMainInvokeEvent, src: string) {
+function onGetFileStructureHandler(
+    _: IpcMainInvokeEvent,
+    src: string,
+): Entry[] {
     if (fileManager?.main) return fileManager.getDirectoryContent(src);
 
     return [];
 }
 
-function onDebuggerResumeHandler() {
+function onDebuggerResumeHandler(): void {
     debuggerDomain.resume(Ids.DEBUGGER.RESUME);
 }
 
-function onGetSourceMapHandler(_: IpcMainInvokeEvent, src: string) {
+function onGetSourceMapHandler(
+    _: IpcMainInvokeEvent,
+    src: string,
+): SourceMapConsumer | null {
     return fileManager.evaluateSourceMap(src);
 }
 
 async function onSetBreakpointByUrlHandler(
     _: IpcMainEvent,
     loc: Debugger.LocationWithUrl,
-) {
+): Promise<void> {
     const origLoc = fileManager.getOriginLocation(loc);
 
     logger.group(origLoc, "original location");

@@ -1,16 +1,16 @@
-import { Debugger, DebuggerMethods } from "../types/debugger.types";
-import { Result, Parameters } from "../global";
+import { Parameters, Result } from "../global";
 import { Logger } from "../modules/logger";
 import { WS } from "../modules/wsdbserver";
+import { Debugger, DebuggerMethods } from "../types/debugger.types";
 
 export class DebuggerDomain {
     private readonly ws: WS;
     private readonly logger: Logger;
 
-    private breakpoints: Debugger.Breakpoint[] = [];
+    private readonly breakpoints: Debugger.Breakpoint[] = [];
     private debuggerId: string | null = null;
 
-    constructor(socket: WS) {
+    public constructor(socket: WS) {
         this.ws = socket;
         this.logger = new Logger("DEBUGGER DOMAIN");
     }
@@ -19,12 +19,12 @@ export class DebuggerDomain {
         return JSON.stringify(input);
     }
 
-    setDebuggerId(dId: string): void {
+    public setDebuggerId(dId: string): void {
         this.debuggerId = dId;
         this.logger.log("get id: " + this.debuggerId);
     }
 
-    async enable(id: number): Promise<void> {
+    public async enable(id: number): Promise<void> {
         await this.ws.sendAndReceive(
             id,
             this.buildMessage<Parameters<Debugger.EnableParams>>({
@@ -34,7 +34,7 @@ export class DebuggerDomain {
         );
     }
 
-    async getScriptSource(id: number, scriptId: string): Promise<void> {
+    public getScriptSource(id: number, scriptId: string): void {
         this.logger.log("send get script source");
 
         this.ws.send(
@@ -48,17 +48,17 @@ export class DebuggerDomain {
         );
     }
 
-    async pause(id: number): Promise<void> {
+    public pause(id: number): void {
         this.logger.log("send pause");
         this.ws.send(
-            this.buildMessage<Parameters<{}>>({
+            this.buildMessage<Parameters<unknown>>({
                 id: id,
                 method: DebuggerMethods.PAUSE,
             }),
         );
     }
 
-    async resume(id: number): Promise<void> {
+    public async resume(id: number): Promise<void> {
         this.logger.log("send resume");
         const result = await this.ws.sendAndReceive(
             id,
@@ -75,7 +75,7 @@ export class DebuggerDomain {
         }
     }
 
-    async setBreakpointByUrl(
+    public async setBreakpointByUrl(
         id: number,
         loc: Debugger.LocationWithUrl,
     ): Promise<Result<Debugger.SetBreakPonitByUrlReturn> | null> {
@@ -95,7 +95,7 @@ export class DebuggerDomain {
         );
     }
 
-    registerBreakpoint(id: string): void {
+    public registerBreakpoint(id: string): void {
         const brkp = {
             id,
         };

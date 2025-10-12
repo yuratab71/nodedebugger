@@ -9,9 +9,7 @@
         "package": "electron-forge package",
         "make": "electron-forge make",
         "publish": "electron-forge publish",
-        "lint": "eslint . --ext .ts,.tsx",
-        "lint:main": "eslint ./src/preload/preload.ts",
-        "lint:fix": "eslint . --ext .ts,.tsx --fix",
+        "lint": "biome lint ./src",
         "dir": "electron-builder --dir",
         "dist": "electron-builder"
     },

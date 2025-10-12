@@ -1,16 +1,16 @@
-import { IStrategy } from "../types/strategy";
+import { IStrategy } from "../types/strategy.types";
 import { Logger } from "./logger";
 
 type Task<T> = () => Promise<T>;
 
 export class TaskQueueRunner {
-    logger: Logger;
-    queue: Task<any>[] = [];
+    private readonly logger: Logger;
+    private readonly queue: Task<unknown>[] = [];
     private isProcessing: boolean = false;
 
     static #instance: TaskQueueRunner;
 
-    static instance(): TaskQueueRunner {
+    public static instance(): TaskQueueRunner {
         if (!TaskQueueRunner.#instance) {
             TaskQueueRunner.#instance = new TaskQueueRunner();
         }
@@ -22,7 +22,7 @@ export class TaskQueueRunner {
         this.logger = new Logger("QUEUE PROCESSOR");
     }
 
-    enqueue<T>(strategy: IStrategy<T>): Promise<void> {
+    public enqueue<T>(strategy: IStrategy<T>): Promise<void> {
         return new Promise((resolve, reject) => {
             this.queue.push(async () => {
                 try {

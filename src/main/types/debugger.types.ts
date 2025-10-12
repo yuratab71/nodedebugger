@@ -1,6 +1,18 @@
 import { Runtime } from "./runtime.types";
 
 export namespace Debugger {
+    export type JsonInfo = {
+        description: string;
+        devtoolsFrontendUrl: string;
+        devtoolsFrontendUrlCompat: string;
+        faviconUrl: string;
+        id: string;
+        title: string;
+        type: string;
+        url: string;
+        webSocketDebuggerUrl: string;
+    };
+
     export type Breakpoint = {
         id: string;
     };
@@ -101,7 +113,7 @@ export namespace Debugger {
         functionLocation?: Location;
         location: Location;
         url: string;
-        scopeChain: any[];
+        scopeChain: unknown[];
         this: Runtime.RemoteObject;
         returnValue?: Runtime.RemoteObject;
         canBeRestarted?: boolean;
@@ -165,14 +177,14 @@ export namespace DebuggerEvents {
             | "promiseRejection"
             | "XHR"
             | "step";
-        data: Object;
+        data: unknown;
         hitBreakpoints?: string[];
         asyncStackTrace?: Runtime.StackTrace;
         asyncStackTraceId?: Runtime.StackTraceId;
         asyncCallStackId?: Runtime.StackTraceId; // deprecated in V8 inspector protocol
     };
 
-    export type Resumed = {};
+    export type Resumed = unknown;
 
     export type ScriptParsed = {
         scriptId: Runtime.ScriptId;
@@ -184,7 +196,7 @@ export namespace DebuggerEvents {
         executionContextId: Runtime.ExecutionContextId;
         hash: string;
         buildId: string;
-        executionContextAuxData?: Object;
+        executionContextAuxData?: unknown;
         isLiveEdit?: boolean;
         sourceMapURL?: string;
         hasSourceURL?: boolean;

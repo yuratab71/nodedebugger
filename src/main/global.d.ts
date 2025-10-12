@@ -6,18 +6,18 @@ import { Breakpoint, LocationByUrl } from "./types/debugger";
 import { Runtime } from "./types/runtime.types";
 import { Debugger } from "electron";
 
-type Result<R> = {
+export type Result<R> = {
     id: number;
     result: R;
 };
 
-type Parameters<P> = {
+export type Parameters<P> = {
     id: number;
     method: string;
     params?: P;
 };
 
-type Error = {
+export type ErrorMsg = {
     id: number;
     error: {
         code: number;
@@ -26,7 +26,7 @@ type Error = {
     };
 };
 
-type Event<R> = {
+export type Event<R> = {
     method: string;
     params: R;
 };
@@ -51,12 +51,12 @@ declare global {
             ) => void;
             onRootDirResolve: (callback: (rootDir: string) => void) => void;
             getFileStructure: (src: string) => Promise<Entry[]>;
-            getFileContent: (src: string) => Promise<any>;
+            getFileContent: (src: string) => Promise<unknown>;
             getSourceMap: (src: string) => Promise<SourceMapConsumer | null>;
             getRootDir: (callback: (rootDir: string) => void) => void;
             onParsedFilesUpdate: (callback: (entries: Entry[]) => void) => void;
             onRegisterBreakpoint: (callback: (brk: Breakpoint) => void) => void;
-            getObjectId: (name: string) => Promise<any>;
+            getObjectId: (name: string) => Promise<unknown>;
         };
     }
 }

@@ -1,14 +1,14 @@
-import { Debugger } from "@/main/types/debugger.types";
-import {
-    AddBreakpointAction,
-    ADD_BREAKPOINT,
-} from "@/renderer/redux/breakpoints.reducer";
-import { GlobalState } from "@/renderer/redux/store";
 import { Typography } from "@mui/material";
 import { Box } from "@mui/system";
 import { RichTreeView, TreeViewBaseItem } from "@mui/x-tree-view";
 import { Component, ReactNode } from "react";
 import { connect } from "react-redux";
+import {
+    ADD_BREAKPOINT,
+    AddBreakpointAction,
+} from "@/renderer/redux/breakpoints.reducer";
+import { GlobalState } from "@/renderer/redux/store";
+import { Debugger } from "../../../main/types/debugger.types";
 
 interface StateProps {
     line: number | null;
@@ -25,10 +25,10 @@ interface StatsState {
 }
 
 class Stats extends Component<StateProps & DispatchProps, StatsState> {
-    private BRK_ID = "brk-id";
-    private BRK_LABEL = "Breakpoints";
+    private readonly BRK_ID = "brk-id";
+    private readonly BRK_LABEL = "Breakpoints";
 
-    constructor(props: StateProps & DispatchProps) {
+    public constructor(props: StateProps & DispatchProps) {
         super(props);
         this.state = {
             breakpoints: {
@@ -39,13 +39,13 @@ class Stats extends Component<StateProps & DispatchProps, StatsState> {
         };
     }
 
-    override componentDidMount() {
+    public override componentDidMount(): void {
         window.electronAPI.onRegisterBreakpoint((brk: Debugger.Breakpoint) => {
             this.props.addBreakpoint(brk.id);
         });
     }
 
-    override render(): ReactNode {
+    public override render(): ReactNode {
         return (
             <Box width="310px" height="90vh">
                 <Box display="flex" flexDirection="row">
@@ -89,7 +89,7 @@ const mapStateToProps = (state: GlobalState): StateProps => {
 };
 
 const mapDispatchToProps: DispatchProps = {
-    addBreakpoint: (data) => {
+    addBreakpoint: (data: string) => {
         const action: AddBreakpointAction = {
             type: ADD_BREAKPOINT,
             data,

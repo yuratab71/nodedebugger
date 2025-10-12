@@ -1,16 +1,15 @@
-import fs from "node:fs";
-import { readFileSync } from "node:fs";
+import fs, { readFileSync } from "node:fs";
 import path from "path";
 import { SourceMapConsumer } from "source-map-js";
 import { PackageJson, TsConfigJson } from "type-fest";
-import { Logger } from "./logger";
-import { SourceMap } from "../types/sourceMap.types";
 import { Debugger, DebuggerEvents } from "../types/debugger.types";
 import {
     Entry,
     POSIX_SEPARATOR,
     WIN32_SEPARATOR,
 } from "../types/fileManager.types";
+import { SourceMap } from "../types/sourceMap.types";
+import { Logger } from "./logger";
 
 /**
  * All V8 url starts with this line
@@ -30,16 +29,16 @@ export class FileManager {
     private readonly logger: Logger;
     private readonly rootDir: string;
 
-    private srcFileStructure: Entry[];
-    private parsedFiles: Entry[];
-    private subprocessPackageJson: PackageJson;
-    private subprocessTsConfig: TsConfigJson;
+    private readonly srcFileStructure: Entry[];
+    private readonly parsedFiles: Entry[];
+    private readonly subprocessPackageJson: PackageJson;
+    private readonly subprocessTsConfig: TsConfigJson;
 
-    main: string | null;
+    public main: string | null;
 
     static #instance: FileManager | null;
 
-    static instance(params: FileManagerInitParams): FileManager {
+    public static instance(params: FileManagerInitParams): FileManager {
         if (!FileManager.#instance) {
             FileManager.#instance = new FileManager(params);
         }
@@ -47,7 +46,7 @@ export class FileManager {
         return FileManager.#instance;
     }
 
-    static removeInstance(): void {
+    public static removeInstance(): void {
         FileManager.#instance = null;
     }
 
@@ -70,7 +69,7 @@ export class FileManager {
         onFileStructureResolveCallback(this.rootDir, this.srcFileStructure);
     }
 
-    private resolveDirectoryFiles(dir: string) {
+    private resolveDirectoryFiles(dir: string): Entry[] {
         const entries = fs.readdirSync(dir);
         const result: Entry[] = [];
         entries.forEach((entry: string) => {
@@ -91,7 +90,7 @@ export class FileManager {
         return result;
     }
 
-    getPathToMain(): string | null {
+    public getPathToMain(): string | null {
         return this.main;
     }
 
@@ -110,7 +109,7 @@ export class FileManager {
         return path.join(result, "main.js");
     }
 
-    readFile(src: fs.PathLike): string {
+    public readFile(src: fs.PathLike): string {
         const isFile = fs.lstatSync(src).isFile();
         if (isFile) {
             const fileContent = readFileSync(src, { encoding: "utf8" });
@@ -121,7 +120,9 @@ export class FileManager {
         return "Not a file, maybe a folder\n";
     }
 
-    registerParsedFile(scriptParsed: DebuggerEvents.ScriptParsed): Entry {
+    public registerParsedFile(
+        scriptParsed: DebuggerEvents.ScriptParsed,
+    ): Entry {
         this.logger.log(
             "registering a parsed file by url: " + scriptParsed.url,
         );
@@ -144,16 +145,20 @@ export class FileManager {
             extension: fp.ext,
             sourceMapUrl: scriptParsed?.sourceMapURL ?? "none",
             sourceMap: sm,
-            sources: sm?.sources ? sm?.sources.map((el) => {
-                return this.normalizeForPOSIXpath(path.resolve(fp.dir, el));
-            }) : [],
+            sources: sm?.sources
+                ? sm?.sources.map((el) => {
+                      return this.normalizeForPOSIXpath(
+                          path.resolve(fp.dir, el),
+                      );
+                  })
+                : [],
         };
         this.parsedFiles.push(file);
         this.logger.group(file, "registered file");
         return file;
     }
 
-    getDirectoryContent(dir: string) {
+    public getDirectoryContent(dir: string): Entry[] {
         const entries = fs.readdirSync(dir);
         const result: Entry[] = [];
         entries.forEach((entry: string) => {
@@ -174,7 +179,7 @@ export class FileManager {
         return result;
     }
 
-    evaluateSourceMap(origin: string): SourceMapConsumer | null {
+    public evaluateSourceMap(origin: string): SourceMapConsumer | null {
         // INFO: two entries, if schecking js file and ts file
         // INFO: use POSIX slash style, as "/", cause V8 inspector uses POSIX style
         //
@@ -212,7 +217,7 @@ export class FileManager {
                     );
                     isFileParsed = true;
                     const smu = this.parsedFiles[i]?.sourceMap;
-                    if (!!smu) {
+                    if (smu != undefined) {
                         return new SourceMapConsumer(smu);
                     }
                 }
@@ -224,7 +229,7 @@ export class FileManager {
         return null;
     }
 
-    getOriginLocation(
+    public getOriginLocation(
         loc: Debugger.LocationWithUrl,
     ): Debugger.LocationWithUrl | null {
         let normalizedPath;
@@ -274,7 +279,7 @@ export class FileManager {
         return null;
     }
 
-    private normalizeForPOSIXpath(p: string) {
+    private normalizeForPOSIXpath(p: string): string {
         return p.split(WIN32_SEPARATOR).join(POSIX_SEPARATOR);
     }
 }

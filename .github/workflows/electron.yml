@@ -24,6 +24,14 @@ jobs:
       - name: Install dependencies
         run: yarn install
         shell: pwsh
+
+      - name: Install biome
+        run: yarn global add @biomejs/biome
+        shell: pwsh
+
+      - name: Lint
+        run: yarn lint
+        shell: pwsh
     
       - name: Package
         run: yarn package

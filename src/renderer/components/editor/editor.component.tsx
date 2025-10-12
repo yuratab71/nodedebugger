@@ -1,11 +1,11 @@
-import React, { Component, createRef, ReactNode, RefObject } from "react";
 import { Box, Menu, MenuItem } from "@mui/material";
-import { GlobalState } from "@/renderer/redux/store";
-import {
-    UpdateLineAndColPositionAction,
-    UPDATE_LINE_AND_COL_POSITION,
-} from "@/renderer/redux/parsedFiles.reducer";
+import React, { Component, createRef, ReactNode, RefObject } from "react";
 import { connect } from "react-redux";
+import {
+    UPDATE_LINE_AND_COL_POSITION,
+    UpdateLineAndColPositionAction,
+} from "@/renderer/redux/parsedFiles.reducer";
+import { GlobalState } from "@/renderer/redux/store";
 
 interface StateProps {
     currentFileContent: string | null;
@@ -22,33 +22,35 @@ interface EditorState {
 }
 
 class Editor extends Component<StateProps & DispatchProps, EditorState> {
-    constructor(props: StateProps & DispatchProps) {
+    public constructor(props: StateProps & DispatchProps) {
         super(props);
     }
 
-    override state: EditorState = {
+    public override state: EditorState = {
         menuPos: null,
         line: null,
         col: null,
     };
 
-    preRef: RefObject<HTMLPreElement | null> = createRef<HTMLPreElement>();
+    private readonly preRef: RefObject<HTMLPreElement | null> =
+        createRef<HTMLPreElement>();
 
-    getCaretIndex(pre: HTMLElement, range: Range): number {
+    private getCaretIndex(pre: HTMLElement, range: Range): number {
         const preRange = document.createRange();
         preRange.selectNodeContents(pre);
         preRange.setEnd(range.startContainer, range.startOffset);
         return preRange.toString().length;
     }
 
-    handleMouse = (e: React.MouseEvent) => {
+    private readonly handleMouse = (e: React.MouseEvent): void => {
         if (!this.preRef.current) return;
 
         let range: Range | null = null;
 
         if ("caretRangeFromPoint" in document) {
-            range = (document as any).caretRangeFromPoint(e.clientX, e.clientY);
+            range = document.caretRangeFromPoint(e.clientX, e.clientY);
         } else if ("caretPositionFromPoint" in document) {
+            // biome-ignore lint: types are not up to date, this property is missing
             const pos = (document as any).caretPositionFromPoint(
                 e.clientX,
                 e.clientY,
@@ -72,7 +74,9 @@ class Editor extends Component<StateProps & DispatchProps, EditorState> {
             this.props.onPosChange(line, col);
     };
 
-    handleContextMenu = (e: React.MouseEvent<HTMLPreElement>) => {
+    private readonly handleContextMenu = (
+        e: React.MouseEvent<HTMLPreElement>,
+    ): void => {
         e.preventDefault();
         this.setState({
             menuPos: {
@@ -82,11 +86,11 @@ class Editor extends Component<StateProps & DispatchProps, EditorState> {
         });
     };
 
-    handleCloseMenu = () => {
+    private readonly handleCloseMenu = (): void => {
         this.setState({ menuPos: null });
     };
 
-    override render(): ReactNode {
+    public override render(): ReactNode {
         return (
             <>
                 <Box
@@ -105,11 +109,13 @@ class Editor extends Component<StateProps & DispatchProps, EditorState> {
                         border: "1px solid",
                         borderColor: "delimiter",
                         overflowX: "scroll",
-                    }}>
+                    }}
+                >
                     <pre
                         onContextMenu={this.handleContextMenu}
                         ref={this.preRef}
-                        onMouseMove={this.handleMouse}>
+                        onMouseMove={this.handleMouse}
+                    >
                         {this.props.currentFileContent
                             ? this.props.currentFileContent
                             : "..."}
@@ -126,26 +132,23 @@ class Editor extends Component<StateProps & DispatchProps, EditorState> {
                                   left: this.state.menuPos?.mouseX,
                               }
                             : { top: 0, left: 0 }
-                    }>
+                    }
+                >
                     <MenuItem
-                        onClick={() => {
-                            console.log(this.props.currentFileUrl);
-                            console.log(this.state.line);
+                        onClick={(): void => {
                             window.electronAPI.setBreakpointByUrl({
                                 url: this.props.currentFileUrl,
                                 lineNumber: this.state.line,
                             });
-                        }}>
+                        }}
+                    >
                         Set Breakpoint
                     </MenuItem>
                     <MenuItem
-                        onClick={async () => {
-                            const name =
-                                await window.electronAPI.getObjectId(
-                                    "bootstrap",
-                                );
-                            console.log(name);
-                        }}>
+                        onClick={async (): Promise<void> => {
+                            await window.electronAPI.getObjectId("bootstrap");
+                        }}
+                    >
                         Get Object Id
                     </MenuItem>
                 </Menu>

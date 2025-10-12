@@ -4,6 +4,7 @@ import { memoryStatsReducer } from "./memoryStats.reducer";
 import { parsedFileReducer } from "./parsedFiles.reducer";
 import { webSocketStatusReducer } from "./webSocketConnection.reducer";
 
+// biome-ignore lint: redux
 const globalReducer = combineReducers({
     webSocketStatus: webSocketStatusReducer,
     memoryStats: memoryStatsReducer,
@@ -13,6 +14,7 @@ const globalReducer = combineReducers({
 
 export type GlobalState = ReturnType<typeof globalReducer>;
 
+// biome-ignore lint: redux
 const store = createStore(globalReducer);
 
 export default store;

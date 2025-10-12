@@ -1,6 +1,6 @@
-import { Status } from "../../../main/constants/status";
 import { Typography } from "@mui/material";
 import { Component, ReactNode } from "react";
+import { Status } from "../../../main/constants/status";
 
 interface DotProps {
     status: Status;
@@ -9,11 +9,11 @@ interface DotProps {
 interface DotState {}
 
 export class Dot extends Component<DotProps, DotState> {
-    constructor(props: DotProps) {
+    public constructor(props: DotProps) {
         super(props);
     }
 
-    getColor(status: Status) {
+    private getColor(status: Status): string {
         switch (status) {
             case Status.NOT_ACTIVE:
                 return "grey";
@@ -28,7 +28,7 @@ export class Dot extends Component<DotProps, DotState> {
         }
     }
 
-    override render(): ReactNode {
+    public override render(): ReactNode {
         return (
             <Typography
                 sx={{

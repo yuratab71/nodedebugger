@@ -1,4 +1,4 @@
-import { Error, Result, Event } from "../global";
+import { ErrorMsg, Event, Result } from "../global";
 import { Debugger, DebuggerEvents } from "./debugger.types";
 import { Runtime } from "./runtime.types";
 
@@ -13,4 +13,4 @@ type EventCombined = DebuggerEvents.Paused &
 
 export type InspectorMessage = Result<ResultCombined> &
     Event<EventCombined> &
-    Error;
+    ErrorMsg;
