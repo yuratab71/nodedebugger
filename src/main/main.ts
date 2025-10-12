@@ -1,5 +1,5 @@
 import type * as electron from "electron";
-import { app, BrowserWindow, dialog, ipcMain } from "electron";
+import { app, BrowserWindow, crashReporter, dialog, ipcMain } from "electron";
 import "dotenv/config";
 import path from "path";
 import type { SourceMapConsumer } from "source-map-js";
@@ -53,17 +53,16 @@ const sendStatus = (st: Status): void => {
 
 const createWindow = (): void => {
     logger.log(`Starting Nquisitor on: ${process.platform}`);
-
     mainWindow = new BrowserWindow({
         height: 760,
         width: 1024,
         icon: path.join(__dirname, "../../public/icon.ico"),
-        webPreferences: {
-            preload: path.join(__dirname, "preload.js"),
-        },
+        //        webPreferences: {
+        //           preload: "", // path.join(__dirname, "preload.js"),
+        //      },
     });
 
-    if (MAIN_WINDOW_VITE_DEV_SERVER_URL != undefined) {
+    if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
         mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
     } else {
         mainWindow.loadFile(
@@ -76,7 +75,6 @@ const createWindow = (): void => {
 
     sendStatus(Status.NOT_ACTIVE);
 
-    logger.log(`After main function`);
     setInterval(() => {
         if (WS.isConnected()) {
             runtimeDomain.getMemoryUsage(Ids.RUNTIME.GET_MEMORY_USAGE);
@@ -96,6 +94,15 @@ const createWindow = (): void => {
     });
 
     mainWindow.webContents.openDevTools();
+
+    process.removeAllListeners("uncaughtException");
+
+    process.on("uncaughtException", (err: Error) => {
+        console.error(err);
+        process.exit(1);
+    });
+
+    console.log("listener set");
 };
 
 app.on("ready", createWindow);

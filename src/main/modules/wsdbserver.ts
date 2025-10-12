@@ -1,8 +1,8 @@
-import { Status } from "../constants/status";
 import type { RawData } from "ws";
 import { WebSocket } from "ws";
-import { Logger } from "./logger";
+import { Status } from "../constants/status";
 import type { InspectorMessage } from "../types/message.types";
+import { Logger } from "./logger";
 
 type WsInitParams = {
     url?: string;
