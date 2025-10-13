@@ -10,7 +10,7 @@ interface LogTerminalState {
 }
 
 export class LogTerminal extends Component<LogTerminalProps, LogTerminalState> {
-	private readonly logEndRef = createRef<HTMLDivElement>();
+	private readonly scrollRef = createRef<HTMLDivElement>();
 
 	public constructor(props: LogTerminalProps) {
 		super(props);
@@ -28,8 +28,10 @@ export class LogTerminal extends Component<LogTerminalProps, LogTerminalState> {
 	}
 
 	private scrollToBottom(): void {
-		if (this.logEndRef.current) {
-			this.logEndRef.current.scrollIntoView({ behavior: "smooth" });
+		if (this.scrollRef.current) {
+			//this.logEndRef.current.scrollIntoView({ behavior: "smooth" });
+			this.scrollRef.current.scrollTop =
+				this.scrollRef.current.scrollHeight;
 		}
 	}
 
@@ -41,6 +43,7 @@ export class LogTerminal extends Component<LogTerminalProps, LogTerminalState> {
 		return (
 			<Paper
 				elevation={3}
+				ref={this.scrollRef}
 				sx={{
 					bgcolor: "black",
 					color: "lime",
@@ -48,7 +51,7 @@ export class LogTerminal extends Component<LogTerminalProps, LogTerminalState> {
 					p: 1,
 					height: "100%",
 					width: "100%",
-					overflowY: "auto",
+					overflow: "scroll",
 					borderRadius: 1,
 				}}
 			>
@@ -63,7 +66,6 @@ export class LogTerminal extends Component<LogTerminalProps, LogTerminalState> {
 						{log}
 					</Typography>
 				))}
-				<div ref={this.logEndRef} />
 			</Paper>
 		);
 	}

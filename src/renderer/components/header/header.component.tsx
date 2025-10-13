@@ -50,32 +50,24 @@ export class Header extends Component<NavbarProps> {
 				<Paper
 					elevation={2}
 					sx={{
-						display: "flex",
-						justifyContent: "flex-start",
-						height: 182,
+						display: "grid",
+						gridTemplateColumns: "200px 1fr 315px",
+						height: "100%",
 					}}
 				>
 					<Avatar
 						sx={{
 							objectFit: "cover",
-							width: 182,
-							height: 182,
+							width: "100%",
+							height: "100%",
 						}}
 						src={MainLogo}
 					/>
-					<Box
-						flex={1}
-						maxWidth={1024}
-						sx={{
-							height: "100%",
-						}}
-					>
-						<NqLogs />
-					</Box>
+					<NqLogs />
 					<Box
 						height="100%"
 						display="flex"
-						width="310px"
+						width="100%"
 						flexDirection="column"
 						sx={{
 							padding: 1,

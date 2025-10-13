@@ -97,18 +97,14 @@ class Editor extends Component<StateProps & DispatchProps, EditorState> {
 					flex={1}
 					padding={0}
 					margin={0}
-					maxWidth={1024}
-					overflow="scroll"
 					fontFamily="monospace"
 					sx={{
-						maxWidth: 960,
 						height: "90vh",
 						whiteSpace: "pre",
 						p: 1,
 						backgroundColor: "background.paper",
 						border: "1px solid",
 						borderColor: "delimiter",
-						overflowX: "scroll",
 					}}
 				>
 					<pre

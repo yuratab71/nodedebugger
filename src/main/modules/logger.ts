@@ -34,7 +34,7 @@ export class Logger {
 
 	public group(obj: unknown, name: string = "Object: "): void {
 		console.log(`// ${name}: ${this.name}`);
-		console.log(JSON.stringify(obj));
+		console.log(JSON.stringify(obj, null, 4));
 		console.log("\/\/");
 	}
 }

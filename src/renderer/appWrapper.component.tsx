@@ -22,22 +22,22 @@ export class AppWrapper extends Component<AppWrapperProps, AppWrapperState> {
 
 		return (
 			<ThemeProvider theme={theme}>
+				<CssBaseline />
 				<Box
 					sx={{
 						width: "100%",
 						height: "100%",
-						display: "flex",
-						flexDirection: "column",
+						display: "grid",
+						gridTemplateRows: "250px 1fr 35px",
+						gap: "0px",
 					}}
 				>
-					<CssBaseline />
 					<Header />
-
 					<Box
 						component={"main"}
 						sx={{
-							flexGrow: 1,
-							width: "100%",
+							display: "grid",
+							gridTemplateColumns: "200px 1fr 315px",
 						}}
 					>
 						{children}

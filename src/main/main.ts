@@ -45,13 +45,6 @@ import { Entry } from "./types/fileManager.types";
 import { InspectorMessage } from "./types/message.types";
 import { Runtime } from "./types/runtime.types";
 
-/**
-     "assist": {
-        "enabled": true,
-        "actions": { "source": { "organizeImports": "on" } }
-    }
-  */
-
 declare const MAIN_WINDOW_VITE_NAME: string | undefined;
 declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string | undefined;
 
@@ -213,6 +206,7 @@ const processWebSocketMessageCallback = (message: InspectorMessage): void => {
 	if (message.method) {
 		switch (message.method) {
 			case DebuggerEvents.PAUSED:
+				logger.group(message, "debugger pause");
 				mainWindow.webContents.send(
 					ON_PROCESS_LOG_UPDATE,
 					`debugger paused, reason: ${message.params?.reason}`,
@@ -389,12 +383,10 @@ async function onSetBreakpointByUrlHandler(
 ): Promise<void> {
 	const origLoc = fileManager.getOriginLocation(loc);
 
-	logger.group(origLoc, "original location");
-	if (!!origLoc?.lineNumber && !!origLoc?.url) {
+	if (origLoc != null) {
 		loc = origLoc;
 	}
 
-	logger.group(loc, "origin location");
 	await debuggerDomain.setBreakpointByUrl(
 		Ids.DEBUGGER.SET_BREAKPOINT_BY_URL,
 		loc,

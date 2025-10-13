@@ -67,11 +67,9 @@ export default class App extends Component<AppProps, AppState> {
 	public override render(): React.ReactNode {
 		return (
 			<AppWrapper>
-				<Box display="flex" margin={0} padding={0}>
-					<FileExplorer />
-					<Editor />
-					<Stats />
-				</Box>
+				<FileExplorer />
+				<Editor />
+				<Stats />
 			</AppWrapper>
 		);
 	}
