@@ -1,5 +1,6 @@
-import { Box } from "@mui/material";
 import { Component } from "react";
+import { Debugger } from "@/main/types/debugger.types";
+import { FileContent } from "@/main/types/fileManager.types";
 import { AppWrapper } from "./appWrapper.component";
 import Editor from "./components/editor/editor.component";
 import FileExplorer from "./components/fileExplorer/fileExlorer.component";
@@ -14,6 +15,7 @@ interface AppState {
 	};
 	selectedEntryUrl: string;
 	selectedEntryInspectorUrl: string;
+	activeBreakpoints: Debugger.Breakpoint[];
 }
 
 export default class App extends Component<AppProps, AppState> {
@@ -27,6 +29,7 @@ export default class App extends Component<AppProps, AppState> {
 				line: 0,
 				col: 0,
 			},
+			activeBreakpoints: [],
 		};
 	}
 
@@ -35,34 +38,16 @@ export default class App extends Component<AppProps, AppState> {
 		inspectorUrl: string,
 	): Promise<void> => {
 		if (url === this.state.selectedEntryUrl) return;
-		const value = await window.electronAPI.getFileContent(url);
+		const fileContent: FileContent =
+			await window.electronAPI.getFileContent(url);
 		this.setState((prevState) => ({
 			...prevState,
 			selectedEntryUrl: url,
 			selectedEntryInspectorUrl: inspectorUrl,
-			editorValue: value as string,
+			editorValue: fileContent.content,
+			activeBreakpoints: fileContent.activeBreakpoints,
 		}));
 	};
-
-	/**
-    private onPosChange = (line: number, col: number): void => {
-        this.setState((prevState) => ({
-            ...prevState,
-            pos: {
-                line,
-                col,
-            },
-        }));
-    };
-
-    private onSetBreakpointByUrl = (): void => {
-        window.electronAPI.setBreakpointByUrl({
-            url: "file:///" + this.state.selectedEntryInspectorUrl,
-            lineNumber: this.state.pos.line,
-            columnNumber: this.state.pos.col,
-        });
-    };
-*/
 
 	public override render(): React.ReactNode {
 		return (

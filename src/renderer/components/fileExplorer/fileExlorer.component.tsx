@@ -8,7 +8,7 @@ import {
 	UPDATE_CURRENT_FILE,
 	UpdateCurrentFileAction,
 } from "@/renderer/redux/parsedFiles.reducer";
-import { Entry } from "../../../main/types/fileManager.types";
+import { Entry, FileContent } from "../../../main/types/fileManager.types";
 import { GlobalState } from "../../redux/store";
 
 type TreeViewBaseItemExtended = TreeViewBaseItem & { inspectorUrl: string };
@@ -20,31 +20,17 @@ interface StateProps {
 
 interface DispatchProps {
 	addParsedFiles: (files: Entry[]) => void;
-	updateFile: (url: string, content: string) => void;
+	updateFile: (url: string, fileContent: FileContent) => void;
 }
 
 type FileExplorerProps = StateProps & DispatchProps;
 
 class FileExplorer extends Component<FileExplorerProps> {
-	//    private readonly treeItems: TreeViewBaseItem[] = [];
-
 	public override componentDidMount(): void {
 		window.electronAPI.onParsedFilesUpdate((entries: Entry[]) => {
 			this.props.addParsedFiles([...entries]);
 		});
 	}
-
-	/**   private readonly onItemFocus = async (
-        _: SyntheticEvent<Element, Event> | null,
-        itemId: string,
-    ): Promise<void> => {
-        if (itemId === this.props.currentFileUrl) return;
-
-        this.props.updateFile(
-            itemId,
-            (await window.electronAPI.getFileContent(itemId)) as string,
-        );
-    }; */
 
 	public readonly onItemClick = async (
 		_: React.MouseEvent<Element, MouseEvent>,
@@ -54,7 +40,7 @@ class FileExplorer extends Component<FileExplorerProps> {
 
 		this.props.updateFile(
 			itemId,
-			(await window.electronAPI.getFileContent(itemId)) as string,
+			await window.electronAPI.getFileContent(itemId),
 		);
 	};
 
@@ -107,12 +93,13 @@ const mapDispatchToProps: DispatchProps = {
 
 		return action;
 	},
-	updateFile: (url: string, content: string) => {
+	updateFile: (url: string, fileContent: FileContent) => {
 		const action: UpdateCurrentFileAction = {
 			type: UPDATE_CURRENT_FILE,
 			data: {
 				url,
-				content,
+				content: fileContent.content,
+				activeBreakpoints: fileContent.activeBreakpoints,
 			},
 		};
 

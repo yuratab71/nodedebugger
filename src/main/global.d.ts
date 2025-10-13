@@ -5,6 +5,7 @@ import { SourceMapConsumer } from "source-map-js";
 import { Breakpoint, LocationByUrl } from "./types/debugger";
 import { Runtime } from "./types/runtime.types";
 import { Debugger } from "electron";
+import { FileContent } from "./types/fileManager.types";
 
 export type Result<R> = {
 	id: number;
@@ -51,7 +52,7 @@ declare global {
 			) => void;
 			onRootDirResolve: (callback: (rootDir: string) => void) => void;
 			getFileStructure: (src: string) => Promise<Entry[]>;
-			getFileContent: (src: string) => Promise<unknown>;
+			getFileContent: (src: string) => Promise<FileContent>;
 			getSourceMap: (src: string) => Promise<SourceMapConsumer | null>;
 			getRootDir: (callback: (rootDir: string) => void) => void;
 			onParsedFilesUpdate: (callback: (entries: Entry[]) => void) => void;

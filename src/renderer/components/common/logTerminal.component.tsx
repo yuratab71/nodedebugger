@@ -51,6 +51,7 @@ export class LogTerminal extends Component<LogTerminalProps, LogTerminalState> {
 					p: 1,
 					height: "100%",
 					width: "100%",
+					maxWidth: "1024px",
 					overflow: "scroll",
 					borderRadius: 1,
 				}}

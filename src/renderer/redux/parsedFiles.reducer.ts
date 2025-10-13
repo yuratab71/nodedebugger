@@ -1,3 +1,4 @@
+import { Debugger } from "@/main/types/debugger.types";
 import { Entry } from "../../main/types/fileManager.types";
 
 export type ParsedFilesState = {
@@ -6,6 +7,7 @@ export type ParsedFilesState = {
 	currentFileContent: string | null;
 	line: number | null;
 	col: number | null;
+	activeBreakpoints: Debugger.Breakpoint[];
 };
 
 const initialState: ParsedFilesState = {
@@ -14,6 +16,7 @@ const initialState: ParsedFilesState = {
 	currentFileContent: null,
 	line: null,
 	col: null,
+	activeBreakpoints: [],
 };
 
 export const ADD_PARSED_FILE = "ADD_PARSED_FILE";
@@ -35,6 +38,7 @@ export interface UpdateCurrentFileAction {
 	data: {
 		url: string;
 		content: string;
+		activeBreakpoints: Debugger.Breakpoint[];
 	};
 }
 
@@ -67,6 +71,7 @@ export function parsedFileReducer(
 				...state,
 				currentFileUrl: action.data.url,
 				currentFileContent: action.data.content,
+				activeBreakpoints: action.data.activeBreakpoints,
 			};
 		case UPDATE_LINE_AND_COL_POSITION:
 			return {

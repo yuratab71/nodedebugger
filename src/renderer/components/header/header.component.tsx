@@ -60,6 +60,7 @@ export class Header extends Component<NavbarProps> {
 							objectFit: "cover",
 							width: "100%",
 							height: "100%",
+							borderRadius: "0",
 						}}
 						src={MainLogo}
 					/>

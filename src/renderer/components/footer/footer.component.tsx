@@ -21,6 +21,7 @@ export default class Footer extends Component<FooterProps, FoterState> {
 					position: "sticky",
 					bottom: 0,
 					width: "100%",
+					height: "100%",
 					borderTop: "1px solid",
 					borderColor: "divider",
 					p: 1,

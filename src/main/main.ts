@@ -41,7 +41,7 @@ import { EnableDebuggerTask } from "./strategies/enableDebuggerStrategy";
 import { GetConnectionStringTask } from "./strategies/getConnectionStringStrategyTask";
 import { StartSubprocessTask } from "./strategies/startSubprocessStrategyTask";
 import { Debugger, DebuggerEvents } from "./types/debugger.types";
-import { Entry } from "./types/fileManager.types";
+import { Entry, FileContent } from "./types/fileManager.types";
 import { InspectorMessage } from "./types/message.types";
 import { Runtime } from "./types/runtime.types";
 
@@ -352,9 +352,16 @@ function onSetWsStatusHandler(_: IpcMainEvent, status: string): void {
 	mainWindow.webContents.send(ON_WS_CONNECTION_STATUS_UPDATE, status);
 }
 
-function onGetFileContentHandler(_: IpcMainInvokeEvent, src: string): string {
-	if (fileManager?.main) return fileManager.readFile(src);
-	return "";
+function onGetFileContentHandler(
+	_: IpcMainInvokeEvent,
+	src: string,
+): FileContent {
+	const fileContent: FileContent = {
+		content: fileManager.readFile(src),
+		activeBreakpoints: debuggerDomain.getActiveBreakpointOnPage(),
+	};
+
+	return fileContent;
 }
 
 function onGetFileStructureHandler(

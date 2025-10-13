@@ -1,3 +1,4 @@
+import { Breakpoints } from "@mui/material";
 import { Parameters, Result } from "../global";
 import { Logger } from "../modules/logger";
 import { WS } from "../modules/wsdbserver";
@@ -102,5 +103,9 @@ export class DebuggerDomain {
 
 		this.breakpoints.push(brkp);
 		return;
+	}
+
+	public getActiveBreakpointOnPage(): Debugger.Breakpoint[] {
+		return this.breakpoints;
 	}
 }

@@ -1,15 +1,19 @@
-import { Box, Menu, MenuItem } from "@mui/material";
+import { Box, Menu, MenuItem, Typography } from "@mui/material";
 import React, { Component, createRef, ReactNode, RefObject } from "react";
 import { connect } from "react-redux";
+import { Status } from "@/main/constants/status";
+import { Debugger } from "@/main/types/debugger.types";
 import {
 	UPDATE_LINE_AND_COL_POSITION,
 	UpdateLineAndColPositionAction,
 } from "@/renderer/redux/parsedFiles.reducer";
 import { GlobalState } from "@/renderer/redux/store";
+import { Dot } from "../common/dot.component";
 
 interface StateProps {
 	currentFileContent: string | null;
 	currentFileUrl: string | null;
+	activeBreakpoints: Debugger.Breakpoint[];
 }
 
 interface DispatchProps {
@@ -19,6 +23,7 @@ interface EditorState {
 	menuPos: { mouseX: number; mouseY: number } | null;
 	line: number | null;
 	col: number | null;
+	activeBreakpointLines: number[];
 }
 
 class Editor extends Component<StateProps & DispatchProps, EditorState> {
@@ -30,8 +35,14 @@ class Editor extends Component<StateProps & DispatchProps, EditorState> {
 		menuPos: null,
 		line: null,
 		col: null,
+		activeBreakpointLines: [],
 	};
 
+	public override componentDidUpdate(): void {
+		this.state.activeBreakpointLines = this.props.activeBreakpoints.map(
+			(el: Debugger.Breakpoint) => Number(el.id.split(":")[1]) ?? 0,
+		);
+	}
 	private readonly preRef: RefObject<HTMLPreElement | null> =
 		createRef<HTMLPreElement>();
 
@@ -94,28 +105,71 @@ class Editor extends Component<StateProps & DispatchProps, EditorState> {
 		return (
 			<>
 				<Box
-					flex={1}
 					padding={0}
 					margin={0}
+					display={"grid"}
+					gridTemplateColumns={"8px 1fr"}
 					fontFamily="monospace"
 					sx={{
-						height: "90vh",
+						height: "100%",
+						width: "100%",
+						maxWidth: "1024px",
 						whiteSpace: "pre",
 						p: 1,
+						gap: "15px",
 						backgroundColor: "background.paper",
 						border: "1px solid",
+						padding: "0",
 						borderColor: "delimiter",
+						overflow: "scroll",
 					}}
 				>
-					<pre
+					<Box
+						sx={{
+							display: "grid",
+							width: "100%",
+							gridTemplateColumns: "1fr",
+							gap: "0",
+							height: "fit-content",
+						}}
+					>
+						{Array.from(
+							Array(
+								this.props.currentFileContent?.split("\n")
+									.length ?? 0,
+							).keys(),
+						).map((el) => {
+							const isActive =
+								this.state.activeBreakpointLines.includes(el);
+							return (
+								<Box
+									sx={{
+										height: "auto",
+										color: isActive ? "red" : "black",
+										fontWeight: isActive
+											? "bold"
+											: "regular",
+									}}
+								>
+									{el + 1}
+								</Box>
+							);
+						})}
+					</Box>
+					<Typography
+						sx={{
+							display: "block",
+							borderLeft: "1px solid #ccc",
+							paddingLeft: "4px",
+						}}
 						onContextMenu={this.handleContextMenu}
 						ref={this.preRef}
 						onMouseMove={this.handleMouse}
 					>
 						{this.props.currentFileContent
 							? this.props.currentFileContent
-							: "..."}
-					</pre>
+							: ""}
+					</Typography>
 				</Box>
 				<Menu
 					open={this.state.menuPos !== null}
@@ -157,6 +211,7 @@ const mapStateToProps = (state: GlobalState): StateProps => {
 	return {
 		currentFileContent: state.parsedFiles.currentFileContent,
 		currentFileUrl: state.parsedFiles.currentFileUrl,
+		activeBreakpoints: state.parsedFiles.activeBreakpoints,
 	};
 };
 

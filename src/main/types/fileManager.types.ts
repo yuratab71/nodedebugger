@@ -1,3 +1,4 @@
+import { Debugger } from "./debugger.types";
 import { SourceMap } from "./sourceMap.types";
 
 export type Entry = {
@@ -10,6 +11,11 @@ export type Entry = {
 	sourceMapUrl?: string;
 	sourceMap: SourceMap | null;
 	sources: string[];
+};
+
+export type FileContent = {
+	content: string;
+	activeBreakpoints: Debugger.Breakpoint[];
 };
 
 /**
