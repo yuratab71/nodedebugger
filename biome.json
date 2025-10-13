@@ -13,7 +13,7 @@
         "bracketSameLine": false,
         "bracketSpacing": true,
         "expand": "auto",
-        "useEditorconfig": true
+        "useEditorconfig": true,
     },
     "linter": {
         "enabled": true,
@@ -120,19 +120,6 @@
             "!**/vite.preload.config.ts",
             "!**/vite.renderer.config.ts"
         ]
-    },
-    "javascript": {
-        "formatter": {
-            "jsxQuoteStyle": "double",
-            "quoteProperties": "asNeeded",
-            "trailingCommas": "all",
-            "semicolons": "always",
-            "arrowParentheses": "always",
-            "bracketSameLine": false,
-            "quoteStyle": "double",
-            "attributePosition": "auto",
-            "bracketSpacing": true
-        }
     },
     "html": { "formatter": { "selfCloseVoidElements": "always" } },
     "overrides": [
