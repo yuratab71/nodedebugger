@@ -2,10 +2,19 @@
     "$schema": "https://biomejs.dev/schemas/2.2.5/schema.json",
     "vcs": { "enabled": false, "clientKind": "git", "useIgnoreFile": false },
     "files": { "ignoreUnknown": false },
+    "javascript": {
+        "formatter": {
+            "enabled": true,
+            "quoteStyle": "double",
+            "trailingCommas": "all",
+            "semicolons": "always",
+            "operatorLinebreak": "before"
+        }
+    },
     "formatter": {
         "enabled": true,
-        "formatWithErrors": false,
-        "indentStyle": "space",
+        "formatWithErrors": true,
+        "indentStyle": "tab",
         "indentWidth": 4,
         "lineEnding": "lf",
         "lineWidth": 80,
@@ -13,7 +22,7 @@
         "bracketSameLine": false,
         "bracketSpacing": true,
         "expand": "auto",
-        "useEditorconfig": true,
+        "useEditorconfig": true
     },
     "linter": {
         "enabled": true,

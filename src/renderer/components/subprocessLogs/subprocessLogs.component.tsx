@@ -5,18 +5,18 @@ interface SubprocessLogsProps {}
 interface SubprocessLogsState {}
 
 export class SubprocessLogs extends Component<
-    SubprocessLogsProps,
-    SubprocessLogsState
+	SubprocessLogsProps,
+	SubprocessLogsState
 > {
-    public constructor(props: SubprocessLogsProps) {
-        super(props);
-    }
+	public constructor(props: SubprocessLogsProps) {
+		super(props);
+	}
 
-    public override render(): ReactNode {
-        return (
-            <>
-                <LogTerminal onLogs={window.electronAPI.onProcessLog} />
-            </>
-        );
-    }
+	public override render(): ReactNode {
+		return (
+			<>
+				<LogTerminal onLogs={window.electronAPI.onProcessLog} />
+			</>
+		);
+	}
 }

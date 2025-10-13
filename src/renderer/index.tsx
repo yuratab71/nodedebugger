@@ -7,7 +7,7 @@ import "./index.css";
 
 // biome-ignore lint: non-null assertion for root element
 ReactDOM.createRoot(document.getElementById("root")!).render(
-    <Provider store={store}>
-        <App />,
-    </Provider>,
+	<Provider store={store}>
+		<App />,
+	</Provider>,
 );

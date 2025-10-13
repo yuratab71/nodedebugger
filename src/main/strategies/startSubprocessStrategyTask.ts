@@ -7,68 +7,68 @@ import Subprocess from "../modules/subprocess";
 import { IStrategy } from "../types/strategy.types";
 
 type StartSubprocessContext = {
-    mainWindow: BrowserWindow;
-    fileManager: FileManager;
-    subprocess: Subprocess;
+	mainWindow: BrowserWindow;
+	fileManager: FileManager;
+	subprocess: Subprocess;
 };
 
 export class StartSubprocessTask implements IStrategy<StartSubprocessContext> {
-    public context: StartSubprocessContext;
+	public context: StartSubprocessContext;
 
-    public constructor(context: StartSubprocessContext) {
-        this.context = context;
-    }
+	public constructor(context: StartSubprocessContext) {
+		this.context = context;
+	}
 
-    public async run(): Promise<void> {
-        //
-        if (Subprocess.isRunning()) {
-            await this.context.mainWindow.webContents.send(
-                ON_PROCESS_LOG_UPDATE,
-                passMessage("Process already running"),
-            );
-            return;
-        }
+	public async run(): Promise<void> {
+		//
+		if (Subprocess.isRunning()) {
+			await this.context.mainWindow.webContents.send(
+				ON_PROCESS_LOG_UPDATE,
+				passMessage("Process already running"),
+			);
+			return;
+		}
 
-        //
-        let mainPath = this.context.fileManager.getPathToMain();
+		//
+		let mainPath = this.context.fileManager.getPathToMain();
 
-        if (!mainPath) return;
+		if (!mainPath) return;
 
-        //
-        this.context.subprocess = Subprocess.instance({
-            entry: path.normalize(mainPath),
-            onData: (data: unknown) => {
-                this.context.mainWindow.webContents.send(
-                    ON_PROCESS_LOG_UPDATE,
-                    JSON.stringify(data),
-                );
-            },
-            onError: (data: unknown) => {
-                this.context.mainWindow.webContents.send(
-                    ON_PROCESS_LOG_UPDATE,
-                    `ERROR: ${JSON.stringify(data)}`,
-                );
-            },
-            onExit: (code: number, signal: NodeJS.Signals) => {
-                if (!this.context.mainWindow.isDestroyed()) {
-                    this.context.mainWindow.webContents.send(
-                        ON_PROCESS_LOG_UPDATE,
-                        passMessage(
-                            `Process exited with code: ${code} and signal:${signal}`,
-                        ),
-                    );
-                }
-            },
-        });
+		//
+		this.context.subprocess = Subprocess.instance({
+			entry: path.normalize(mainPath),
+			onData: (data: unknown) => {
+				this.context.mainWindow.webContents.send(
+					ON_PROCESS_LOG_UPDATE,
+					JSON.stringify(data),
+				);
+			},
+			onError: (data: unknown) => {
+				this.context.mainWindow.webContents.send(
+					ON_PROCESS_LOG_UPDATE,
+					`ERROR: ${JSON.stringify(data)}`,
+				);
+			},
+			onExit: (code: number, signal: NodeJS.Signals) => {
+				if (!this.context.mainWindow.isDestroyed()) {
+					this.context.mainWindow.webContents.send(
+						ON_PROCESS_LOG_UPDATE,
+						passMessage(
+							`Process exited with code: ${code} and signal:${signal}`,
+						),
+					);
+				}
+			},
+		});
 
-        //
-        this.context.mainWindow.webContents.send(
-            ON_PROCESS_LOG_UPDATE,
-            passMessage(
-                `starting and external process with entry: ${this.context.subprocess.entry}`,
-            ),
-        );
+		//
+		this.context.mainWindow.webContents.send(
+			ON_PROCESS_LOG_UPDATE,
+			passMessage(
+				`starting and external process with entry: ${this.context.subprocess.entry}`,
+			),
+		);
 
-        return;
-    }
+		return;
+	}
 }

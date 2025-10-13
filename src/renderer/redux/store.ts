@@ -6,10 +6,10 @@ import { webSocketStatusReducer } from "./webSocketConnection.reducer";
 
 // biome-ignore lint: redux
 const globalReducer = combineReducers({
-    webSocketStatus: webSocketStatusReducer,
-    memoryStats: memoryStatsReducer,
-    parsedFiles: parsedFileReducer,
-    breakpoints: breakpointsReducer,
+	webSocketStatus: webSocketStatusReducer,
+	memoryStats: memoryStatsReducer,
+	parsedFiles: parsedFileReducer,
+	breakpoints: breakpointsReducer,
 });
 
 export type GlobalState = ReturnType<typeof globalReducer>;

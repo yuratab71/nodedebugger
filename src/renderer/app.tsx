@@ -7,44 +7,44 @@ import Stats from "./components/stats/stats.components";
 
 interface AppProps {}
 interface AppState {
-    editorValue: string;
-    pos: {
-        line: number;
-        col: number;
-    };
-    selectedEntryUrl: string;
-    selectedEntryInspectorUrl: string;
+	editorValue: string;
+	pos: {
+		line: number;
+		col: number;
+	};
+	selectedEntryUrl: string;
+	selectedEntryInspectorUrl: string;
 }
 
 export default class App extends Component<AppProps, AppState> {
-    public constructor(props: AppProps) {
-        super(props);
-        this.state = {
-            editorValue: "",
-            selectedEntryUrl: "",
-            selectedEntryInspectorUrl: "",
-            pos: {
-                line: 0,
-                col: 0,
-            },
-        };
-    }
+	public constructor(props: AppProps) {
+		super(props);
+		this.state = {
+			editorValue: "",
+			selectedEntryUrl: "",
+			selectedEntryInspectorUrl: "",
+			pos: {
+				line: 0,
+				col: 0,
+			},
+		};
+	}
 
-    public onFileClick = async (
-        url: string,
-        inspectorUrl: string,
-    ): Promise<void> => {
-        if (url === this.state.selectedEntryUrl) return;
-        const value = await window.electronAPI.getFileContent(url);
-        this.setState((prevState) => ({
-            ...prevState,
-            selectedEntryUrl: url,
-            selectedEntryInspectorUrl: inspectorUrl,
-            editorValue: value as string,
-        }));
-    };
+	public onFileClick = async (
+		url: string,
+		inspectorUrl: string,
+	): Promise<void> => {
+		if (url === this.state.selectedEntryUrl) return;
+		const value = await window.electronAPI.getFileContent(url);
+		this.setState((prevState) => ({
+			...prevState,
+			selectedEntryUrl: url,
+			selectedEntryInspectorUrl: inspectorUrl,
+			editorValue: value as string,
+		}));
+	};
 
-    /**
+	/**
     private onPosChange = (line: number, col: number): void => {
         this.setState((prevState) => ({
             ...prevState,
@@ -64,15 +64,15 @@ export default class App extends Component<AppProps, AppState> {
     };
 */
 
-    public override render(): React.ReactNode {
-        return (
-            <AppWrapper>
-                <Box display="flex" margin={0} padding={0}>
-                    <FileExplorer />
-                    <Editor />
-                    <Stats />
-                </Box>
-            </AppWrapper>
-        );
-    }
+	public override render(): React.ReactNode {
+		return (
+			<AppWrapper>
+				<Box display="flex" margin={0} padding={0}>
+					<FileExplorer />
+					<Editor />
+					<Stats />
+				</Box>
+			</AppWrapper>
+		);
+	}
 }
