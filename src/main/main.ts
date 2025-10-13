@@ -239,6 +239,7 @@ const processWebSocketMessageCallback = (message: InspectorMessage): void => {
 	}
 	return;
 };
+
 // main event that trigger all application, must be set first
 // parse directory where project located
 ipcMain.on(SET_DIRECTORY, onSetDirectoryHandler);
@@ -268,24 +269,32 @@ async function onSetDirectoryHandler(): Promise<void> {
 	const result = await dialog.showOpenDialog({
 		properties: ["openDirectory"],
 	});
-	if (
-		!result.canceled
-		&& result.filePaths.length > 0
-		&& result.filePaths[0]
-	) {
-		FileManager.removeInstance();
-		fileManager = FileManager.instance({
-			src: result.filePaths[0],
-			onFileStructureResolveCallback: (root: string, files: Entry[]) => {
-				logger.log("sending data to ui");
-				mainWindow.webContents.send(ON_FILE_STRUCTURE_RESOLVE, files);
-				mainWindow.webContents.send(ON_ROOT_DIR_RESOLVE, root);
-			},
-		});
+
+	if (result.canceled || result.filePaths[0] === undefined) {
+		logger.log("Unable to detect directory");
 		return;
 	}
 
-	logger.log("Unable to detect directory");
+	FileManager.removeInstance();
+
+	fileManager = FileManager.instance({
+		src: result.filePaths[0],
+		onFileStructureResolveCallback: (root: string, files: Entry[]) => {
+			logger.log("sending data to ui");
+			mainWindow.webContents.send(ON_FILE_STRUCTURE_RESOLVE, files);
+			mainWindow.webContents.send(ON_ROOT_DIR_RESOLVE, root);
+		},
+	});
+
+	logger.log(
+		`succesfully detect a node js application at:\n${fileManager.main}`,
+	);
+
+	mainWindow.webContents.send(
+		ON_PROCESS_LOG_UPDATE,
+		passMessage(`Detect a node js application at: \n${fileManager.main}`),
+	);
+	return;
 }
 
 async function onStartSubprocessHandler(): Promise<void> {
@@ -303,15 +312,18 @@ async function onStartSubprocessHandler(): Promise<void> {
 		await taskRunner.enqueue(startTask);
 		await taskRunner.enqueue(getConnStrTask);
 	}
+
 	// all initialization goes in this file
 	// all tasks goes in strategies and queue
 	if (!WS.isConnected(ws?.url)) {
 		logger.log("initializing the ws");
+
 		ws = WS.instance({
 			url: ws?.url,
 			onStatusUpdateCallback: sendStatus,
 			onMessageCallback: processWebSocketMessageCallback,
 		});
+
 		runtimeDomain = new RuntimeDomain(ws);
 		debuggerDomain = new DebuggerDomain(ws);
 	} else {

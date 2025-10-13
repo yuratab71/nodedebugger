@@ -69,7 +69,7 @@ export class WS {
 				this.pendingRequests.set(resp.id?.toString(), resp);
 				onMessageCallback(resp);
 			} catch (e) {
-				console.error(e);
+				this.logger.error(e);
 			}
 		});
 	}
@@ -106,16 +106,13 @@ export class WS {
 	public sendAndReceive<T>(id: number, message: string): Promise<T | null> {
 		this.send(message);
 
-		let isResolved = false;
 		return new Promise<T | null>((resolve, _) => {
 			for (let i = 0; i < this.MAX_RETRIES; i++) {
-				if (isResolved) return;
 				setTimeout(() => {
 					const resp = this.pendingRequests.get(id.toString());
 					if (resp) {
 						resolve(resp);
 						this.pendingRequests.delete(id.toString());
-						isResolved = true;
 					}
 				}, this.RETRY_DELAY);
 			}

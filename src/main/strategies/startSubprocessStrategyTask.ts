@@ -37,16 +37,16 @@ export class StartSubprocessTask implements IStrategy<StartSubprocessContext> {
 		//
 		this.context.subprocess = Subprocess.instance({
 			entry: path.normalize(mainPath),
-			onData: (data: unknown) => {
+			onData: (data: Buffer) => {
 				this.context.mainWindow.webContents.send(
 					ON_PROCESS_LOG_UPDATE,
-					JSON.stringify(data),
+					data.toString(),
 				);
 			},
-			onError: (data: unknown) => {
+			onError: (data: Buffer) => {
 				this.context.mainWindow.webContents.send(
 					ON_PROCESS_LOG_UPDATE,
-					`ERROR: ${JSON.stringify(data)}`,
+					`ERROR: ${data.toString()}`,
 				);
 			},
 			onExit: (code: number, signal: NodeJS.Signals) => {

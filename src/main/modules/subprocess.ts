@@ -2,8 +2,8 @@ import { ChildProcessWithoutNullStreams, spawn } from "node:child_process";
 
 type SubprocessInitParams = {
 	entry: string;
-	onData: (data: unknown) => void;
-	onError: (data: unknown) => void;
+	onData: (data: Buffer) => void;
+	onError: (data: Buffer) => void;
 	onExit: (code: number, signal: NodeJS.Signals) => void;
 };
 

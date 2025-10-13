@@ -141,9 +141,12 @@ export class FileManager {
 		this.logger.log(
 			"registering a parsed file by url: " + scriptParsed.url,
 		);
+
 		const fp = path.parse(scriptParsed.url.slice(8));
+
 		let sm: SourceMap | null = null;
-		if (scriptParsed?.sourceMapURL) {
+
+		if (scriptParsed?.sourceMapURL != undefined) {
 			sm = this.ecstrackInlineSourceMap(scriptParsed?.sourceMapURL);
 			if (!sm)
 				this.logger.log(
