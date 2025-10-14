@@ -23,5 +23,6 @@ export const RUN_RESUME_EXECUTION = "run_resume_execution";
 export const SET_BREAKPOINT_BY_SCRIPT_ID = "set_breakpoint_by_script_id";
 export const SET_BREAKPOINT_BY_URL = "set_breakpoint_by_url";
 export const ON_REGISTER_BREAKPOINT = "on_register_breakpoint";
+export const ON_BREAKPOINT_HIT = "on_breakpoint_hit";
 
 export const GET_OBJECT_ID = "get_object_id";

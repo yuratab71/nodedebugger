@@ -29,7 +29,7 @@ export class FileManager {
 	private readonly logger: Logger;
 	private readonly rootDir: string;
 
-	private readonly srcFileStructure: Entry[];
+	private readonly projectFileStructure: Entry[];
 	private readonly parsedFiles: Entry[];
 	private readonly subprocessPackageJson: PackageJson;
 	private readonly subprocessTsConfig: TsConfigJson;
@@ -64,9 +64,9 @@ export class FileManager {
 			fs.readFileSync(path.join(this.rootDir, "tsconfig.json"), "utf-8"),
 		);
 		this.main = path.join(this.rootDir, this.resolveMain());
-		this.srcFileStructure = this.resolveDirectoryFiles(src);
+		this.projectFileStructure = this.resolveDirectoryFiles(src);
 
-		onFileStructureResolveCallback(this.rootDir, this.srcFileStructure);
+		onFileStructureResolveCallback(this.rootDir, this.projectFileStructure);
 	}
 
 	private resolveDirectoryFiles(dir: string): Entry[] {
@@ -174,6 +174,14 @@ export class FileManager {
 		this.parsedFiles.push(file);
 		this.logger.group(file, "registered file");
 		return file;
+	}
+
+	public checkParsedFile(scriptId: string): boolean {
+		for (let i = 0; i < this.parsedFiles.length; i++) {
+			if (this.parsedFiles[i]?.scriptId === scriptId) return true;
+		}
+
+		return false;
 	}
 
 	public getDirectoryContent(dir: string): Entry[] {

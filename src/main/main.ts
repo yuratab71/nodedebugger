@@ -14,6 +14,7 @@ import {
 	GET_FILE_STRUCTURE,
 	GET_OBJECT_ID,
 	GET_SOURCE_MAP,
+	ON_BREAKPOINT_HIT,
 	ON_FILE_STRUCTURE_RESOLVE,
 	ON_MEMORY_USAGE_UPDATE,
 	ON_PARSED_FILES_UPDATE,
@@ -206,7 +207,24 @@ const processWebSocketMessageCallback = (message: InspectorMessage): void => {
 	if (message.method) {
 		switch (message.method) {
 			case DebuggerEvents.PAUSED:
-				logger.group(message, "debugger pause");
+				if (message.params.hitBreakpoints?.length != 0) {
+					logger.log(`Detect a breakpoint hit`);
+
+					const callFrames = message.params.callFrames.filter(
+						(el: Debugger.CallFrame) => {
+							if (el.functionLocation?.scriptId === undefined)
+								return false;
+							return fileManager.checkParsedFile(
+								el.functionLocation?.scriptId,
+							);
+						},
+					);
+
+					mainWindow.webContents.send(ON_BREAKPOINT_HIT, callFrames);
+				}
+
+				logger.group(message, "debugger paused");
+
 				mainWindow.webContents.send(
 					ON_PROCESS_LOG_UPDATE,
 					`debugger paused, reason: ${message.params?.reason}`,

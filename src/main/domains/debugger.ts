@@ -1,4 +1,5 @@
 import { Breakpoints } from "@mui/material";
+import { Entry } from "type-fest";
 import { Parameters, Result } from "../global";
 import { Logger } from "../modules/logger";
 import { WS } from "../modules/wsdbserver";
@@ -9,6 +10,7 @@ export class DebuggerDomain {
 	private readonly logger: Logger;
 
 	private readonly breakpoints: Debugger.Breakpoint[] = [];
+
 	private debuggerId: string | null = null;
 
 	public constructor(socket: WS) {

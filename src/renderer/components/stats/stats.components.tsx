@@ -7,6 +7,10 @@ import {
 	ADD_BREAKPOINT,
 	AddBreakpointAction,
 } from "@/renderer/redux/breakpoints.reducer";
+import {
+	UPDATE_CALL_FRAMES,
+	UpdateCallFramesAction,
+} from "@/renderer/redux/callFrames.reducer";
 import { GlobalState } from "@/renderer/redux/store";
 import { Debugger } from "../../../main/types/debugger.types";
 
@@ -14,10 +18,12 @@ interface StateProps {
 	line: number | null;
 	col: number | null;
 	breakpointsIds: string[];
+	callFrames: Debugger.CallFrame[];
 }
 
 interface DispatchProps {
 	addBreakpoint: (id: string) => void;
+	updateCallFrames: (callFrames: Debugger.CallFrame[]) => void;
 }
 
 interface StatsState {
@@ -43,6 +49,12 @@ class Stats extends Component<StateProps & DispatchProps, StatsState> {
 		window.electronAPI.onRegisterBreakpoint((brk: Debugger.Breakpoint) => {
 			this.props.addBreakpoint(brk.id);
 		});
+
+		window.electronAPI.onBreakpointHit(
+			(callFrames: Debugger.CallFrame[]) => {
+				this.props.updateCallFrames(callFrames);
+			},
+		);
 	}
 
 	public override render(): ReactNode {
@@ -73,6 +85,22 @@ class Stats extends Component<StateProps & DispatchProps, StatsState> {
 								}),
 							],
 						},
+						{
+							id: "call-frames",
+							label: "Current Call Stack",
+							children: [
+								...this.props.callFrames.map((el) => {
+									return {
+										id: el.callFrameId,
+										label: `${el.this.className}.${
+											el.functionName.length === 0
+												? "anonymos fn"
+												: el.functionName
+										}`,
+									};
+								}),
+							],
+						},
 					]}
 				/>
 			</Box>
@@ -85,6 +113,7 @@ const mapStateToProps = (state: GlobalState): StateProps => {
 		line: state.parsedFiles.line,
 		col: state.parsedFiles.col,
 		breakpointsIds: state.breakpoints.ids,
+		callFrames: state.callFrames.callFrames,
 	};
 };
 
@@ -92,6 +121,14 @@ const mapDispatchToProps: DispatchProps = {
 	addBreakpoint: (data: string) => {
 		const action: AddBreakpointAction = {
 			type: ADD_BREAKPOINT,
+			data,
+		};
+
+		return action;
+	},
+	updateCallFrames: (data: Debugger.CallFrame[]) => {
+		const action: UpdateCallFramesAction = {
+			type: UPDATE_CALL_FRAMES,
 			data,
 		};
 

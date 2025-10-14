@@ -113,7 +113,7 @@ export namespace Debugger {
 		functionLocation?: Location;
 		location: Location;
 		url: string;
-		scopeChain: unknown[];
+		scopeChain: Scope[];
 		this: Runtime.RemoteObject;
 		returnValue?: Runtime.RemoteObject;
 		canBeRestarted?: boolean;

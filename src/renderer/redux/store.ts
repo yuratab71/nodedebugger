@@ -1,5 +1,6 @@
 import { combineReducers, createStore } from "redux";
 import { breakpointsReducer } from "./breakpoints.reducer";
+import { updateCallFrameReducer } from "./callFrames.reducer";
 import { memoryStatsReducer } from "./memoryStats.reducer";
 import { parsedFileReducer } from "./parsedFiles.reducer";
 import { webSocketStatusReducer } from "./webSocketConnection.reducer";
@@ -10,6 +11,7 @@ const globalReducer = combineReducers({
 	memoryStats: memoryStatsReducer,
 	parsedFiles: parsedFileReducer,
 	breakpoints: breakpointsReducer,
+	callFrames: updateCallFrameReducer,
 });
 
 export type GlobalState = ReturnType<typeof globalReducer>;

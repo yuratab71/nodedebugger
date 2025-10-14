@@ -7,6 +7,7 @@ import {
 	GET_ROOT_DIR,
 	GET_SCRIPT_SOURCE,
 	GET_SOURCE_MAP,
+	ON_BREAKPOINT_HIT,
 	ON_FILE_STRUCTURE_RESOLVE,
 	ON_MEMORY_USAGE_UPDATE,
 	ON_PARSED_FILES_UPDATE,
@@ -73,6 +74,13 @@ const Window: Pick<Window, "electronAPI"> = {
 			ipcRenderer.on(ON_REGISTER_BREAKPOINT, (_, brk) => callback(brk));
 		},
 		getObjectId: (name: string) => ipcRenderer.invoke(GET_OBJECT_ID, name),
+		onBreakpointHit: (
+			callback: (callFrames: Debugger.CallFrame[]) => void,
+		) => {
+			ipcRenderer.on(ON_BREAKPOINT_HIT, (_, callFrames) =>
+				callback(callFrames),
+			);
+		},
 	},
 };
 
