@@ -1,3 +1,4 @@
+import { setTimeout } from "timers/promises";
 import { Ids } from "../constants/debuggerMessageIds";
 import { Status } from "../constants/status";
 import { DebuggerDomain } from "../domains/debugger";
@@ -28,7 +29,7 @@ export class EnableDebuggerTask implements IStrategy<EnableDebuggerContext> {
 				return;
 			}
 
-			await new Promise((resolve) => setTimeout(resolve, 500));
+			await setTimeout(500);
 		}
 
 		throw new Error(

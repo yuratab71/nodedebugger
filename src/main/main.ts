@@ -137,7 +137,6 @@ const createWindow = (): void => {
 
 	// crash on exception for debugging purposes
 	process.removeAllListeners("uncaughtException");
-
 	process.on("uncaughtException", (err: Error) => {
 		logger.error(err);
 		process.exit(1);
