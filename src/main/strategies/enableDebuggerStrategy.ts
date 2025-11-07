@@ -1,6 +1,6 @@
 import { setTimeout } from "timers/promises";
-import { Ids } from "../constants/debuggerMessageIds";
-import { Status } from "../constants/status";
+import { InspectorMessageIds } from "../constants/inspectorMessageIds";
+import { wsStatus } from "../constants/wsStatus";
 import { DebuggerDomain } from "../domains/debugger";
 import { RuntimeDomain } from "../domains/runtime";
 import { WS } from "../modules/wsdbserver";
@@ -21,10 +21,12 @@ export class EnableDebuggerTask implements IStrategy<EnableDebuggerContext> {
 
 	public async run(): Promise<void> {
 		for (let i = 0; i < 10; i++) {
-			if (this.context.ws.status === Status.CONNECTED) {
-				await this.context.debuggerDomain.enable(Ids.DEBUGGER.ENABLE);
+			if (this.context.ws.status === wsStatus.CONNECTED) {
+				await this.context.debuggerDomain.enable(
+					InspectorMessageIds.DEBUGGER.ENABLE,
+				);
 				await this.context.runtimeDomain.runIfWaitingForDebugger(
-					Ids.RUNTIME.RUN_IF_WAITING_FOR_DEBUGGER,
+					InspectorMessageIds.RUNTIME.RUN_IF_WAITING_FOR_DEBUGGER,
 				);
 				return;
 			}

@@ -29,8 +29,8 @@ import {
 	SET_DIRECTORY,
 } from "./constants/commands";
 import { MEMORY_USAGE_UPDATE_DELAY } from "./constants/debugger";
-import { Ids } from "./constants/debuggerMessageIds";
-import { Status } from "./constants/status";
+import { InspectorMessageIds } from "./constants/inspectorMessageIds";
+import { wsStatus } from "./constants/wsStatus";
 import { DebuggerDomain } from "./domains/debugger";
 import { RuntimeDomain } from "./domains/runtime";
 import { FileManager } from "./modules/fileManager";
@@ -57,7 +57,7 @@ let platform: NodeJS.Platform;
 // Inti all required modules ====================
 // eslint-disable-next-line
 let ws: WS;
-let status: Status = Status.NOT_ACTIVE;
+let status: wsStatus = wsStatus.NOT_ACTIVE;
 
 let runtimeDomain: RuntimeDomain;
 let debuggerDomain: DebuggerDomain;
@@ -76,7 +76,7 @@ if (require("electron-squirrel-startup")) {
 	app.quit();
 }
 
-const sendStatus = (st: Status): void => {
+const sendStatus = (st: wsStatus): void => {
 	status = st;
 	mainWindow.webContents.send(ON_WS_CONNECTION_STATUS_UPDATE, status);
 };
@@ -104,7 +104,7 @@ const createWindow = (): void => {
 		);
 	}
 
-	sendStatus(Status.NOT_ACTIVE);
+	sendStatus(wsStatus.NOT_ACTIVE);
 
 	// prevent subprocess to continue execution on linux
 	process.on("SIGINT", () => {
@@ -131,7 +131,9 @@ const createWindow = (): void => {
 
 	setInterval(() => {
 		if (WS.isConnected() && !!runtimeDomain) {
-			runtimeDomain.getMemoryUsage(Ids.RUNTIME.GET_MEMORY_USAGE);
+			runtimeDomain.getMemoryUsage(
+				InspectorMessageIds.RUNTIME.GET_MEMORY_USAGE,
+			);
 		}
 	}, MEMORY_USAGE_UPDATE_DELAY);
 
@@ -161,25 +163,25 @@ app.on("activate", () => {
 const processWebSocketMessageCallback = (message: InspectorMessage): void => {
 	if (message.id) {
 		switch (message.id) {
-			case Ids.RUNTIME.GET_MEMORY_USAGE:
+			case InspectorMessageIds.RUNTIME.GET_MEMORY_USAGE:
 				mainWindow.webContents.send(
 					ON_MEMORY_USAGE_UPDATE,
 					message.result.result.value,
 				);
 				break;
-			case Ids.DEBUGGER.ENABLE:
+			case InspectorMessageIds.DEBUGGER.ENABLE:
 				logger.log("debugger enable response: ");
 				logger.group(message);
 				break;
-			case Ids.DEBUGGER.PAUSE:
+			case InspectorMessageIds.DEBUGGER.PAUSE:
 				logger.log("debugger pause resp: ");
 				logger.group(message);
 				break;
-			case Ids.DEBUGGER.SET_BREAKPOINT:
+			case InspectorMessageIds.DEBUGGER.SET_BREAKPOINT:
 				logger.log("set breakpoint");
 				logger.group(message);
 				break;
-			case Ids.DEBUGGER.SET_BREAKPOINT_BY_URL:
+			case InspectorMessageIds.DEBUGGER.SET_BREAKPOINT_BY_URL:
 				logger.log("set breakpoint by url response");
 				logger.group(message);
 				if (message.result?.locations.length === 0) {
@@ -391,7 +393,7 @@ function onGetFileStructureHandler(
 }
 
 function onDebuggerResumeHandler(): void {
-	debuggerDomain.resume(Ids.DEBUGGER.RESUME);
+	debuggerDomain.resume(InspectorMessageIds.DEBUGGER.RESUME);
 }
 
 function onGetSourceMapHandler(
@@ -412,7 +414,7 @@ async function onSetBreakpointByUrlHandler(
 	}
 
 	await debuggerDomain.setBreakpointByUrl(
-		Ids.DEBUGGER.SET_BREAKPOINT_BY_URL,
+		InspectorMessageIds.DEBUGGER.SET_BREAKPOINT_BY_URL,
 		loc,
 	);
 

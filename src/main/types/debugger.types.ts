@@ -69,13 +69,7 @@ export namespace Debugger {
 		breakpointId: BreakpointId;
 		locations: Location[];
 	};
-	// -----------------
-	//
-	//
-	//
-	//
-	//
-	//
+
 	// basic Debugger domain types from official DevTools docs
 	export type BreakpointId = string;
 	export type CallFrameId = string;

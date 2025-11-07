@@ -1,4 +1,4 @@
-import { Ids } from "../constants/debuggerMessageIds";
+import { InspectorMessageIds } from "../constants/inspectorMessageIds";
 import { Parameters } from "../global";
 import { Logger } from "../modules/logger";
 import { WS } from "../modules/wsdbserver";
@@ -57,7 +57,7 @@ export class RuntimeDomain {
 		expression: string,
 	): Promise<Runtime.EvaluateResult | null> {
 		const message: Parameters<Runtime.EvaluateParams> = {
-			id: Ids.RUNTIME.EVALUATE_EXPRESSION,
+			id: InspectorMessageIds.RUNTIME.EVALUATE_EXPRESSION,
 			method: RuntimeMethods.EVALUATE,
 			params: {
 				expression: expression,
@@ -68,19 +68,19 @@ export class RuntimeDomain {
 		this.logger.log(`"${expression}"`);
 
 		return await this.ws.sendAndReceive<Runtime.EvaluateResult>(
-			Ids.RUNTIME.EVALUATE_EXPRESSION,
+			InspectorMessageIds.RUNTIME.EVALUATE_EXPRESSION,
 			JSON.stringify(message),
 		);
 	}
 
 	public async globalLexicalScopeNames(): Promise<unknown> {
 		const message = {
-			id: Ids.RUNTIME.GLOBAL_LEXICAL_SCOPE_NAMES,
+			id: InspectorMessageIds.RUNTIME.GLOBAL_LEXICAL_SCOPE_NAMES,
 			method: RuntimeMethods.GLOBAL_LEXICAL_SCOPE_NAMES,
 		};
 
 		return await this.ws.sendAndReceive(
-			Ids.RUNTIME.GLOBAL_LEXICAL_SCOPE_NAMES,
+			InspectorMessageIds.RUNTIME.GLOBAL_LEXICAL_SCOPE_NAMES,
 			JSON.stringify(message),
 		);
 	}

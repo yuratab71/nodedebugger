@@ -1,18 +1,18 @@
-import { Status } from "@/main/constants/status";
+import { wsStatus } from "../../main/constants/wsStatus";
 
 export type WebSocketStatusState = {
-	status: Status;
+	status: wsStatus;
 };
 
 const initialState: WebSocketStatusState = {
-	status: Status.NOT_ACTIVE,
+	status: wsStatus.NOT_ACTIVE,
 };
 
 export const UPDATE_WS_CONNECTION = "UPDATE_WS_CONNECTION";
 
 export interface UpdateWebSocketStatusAction {
 	type: typeof UPDATE_WS_CONNECTION;
-	status: Status;
+	status: wsStatus;
 }
 
 export function webSocketStatusReducer(

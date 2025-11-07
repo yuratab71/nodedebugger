@@ -1,4 +1,4 @@
-export enum Status {
+export enum wsStatus {
 	CONNECTED = "connected",
 	DISCONNECTED = "disconnected",
 	NOT_ACTIVE = "not active",

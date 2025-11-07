@@ -23,7 +23,7 @@ import {
 	SET_DIRECTORY,
 } from "../main/constants/commands";
 import { Debugger } from "../main/types/debugger.types";
-import { Entry, FileContent } from "../main/types/fileManager.types";
+import { Entry } from "../main/types/fileManager.types";
 
 const Window: Pick<Window, "electronAPI"> = {
 	electronAPI: {

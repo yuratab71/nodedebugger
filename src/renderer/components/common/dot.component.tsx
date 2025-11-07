@@ -1,9 +1,9 @@
 import { Typography } from "@mui/material";
 import { Component, ReactNode } from "react";
-import { Status } from "../../../main/constants/status";
+import { wsStatus } from "../../../main/constants/wsStatus";
 
 interface DotProps {
-	status: Status;
+	status: wsStatus;
 }
 
 interface DotState {}
@@ -13,15 +13,15 @@ export class Dot extends Component<DotProps, DotState> {
 		super(props);
 	}
 
-	private getColor(status: Status): string {
+	private getColor(status: wsStatus): string {
 		switch (status) {
-			case Status.NOT_ACTIVE:
+			case wsStatus.NOT_ACTIVE:
 				return "grey";
-			case Status.CONNECTED:
+			case wsStatus.CONNECTED:
 				return "green";
-			case Status.ERROR:
+			case wsStatus.ERROR:
 				return "red";
-			case Status.DISCONNECTED:
+			case wsStatus.DISCONNECTED:
 				return "orange";
 			default:
 				return "grey";
