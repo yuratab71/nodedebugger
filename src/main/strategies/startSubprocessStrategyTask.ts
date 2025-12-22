@@ -19,57 +19,56 @@ export class StartSubprocessTask implements IStrategy<StartSubprocessContext> {
 		this.context = context;
 	}
 
-	public run(): Promise<void> {
-		return new Promise(() => {
-			if (Subprocess.isRunning()) {
+	public async run(): Promise<void> {
+		//
+		if (Subprocess.isRunning()) {
+			await this.context.mainWindow.webContents.send(
+				ON_PROCESS_LOG_UPDATE,
+				passMessage("Process already running"),
+			);
+			return;
+		}
+
+		//
+		let mainPath = this.context.fileManager.getPathToMain();
+
+		if (!mainPath) return;
+
+		//
+		this.context.subprocess = Subprocess.instance({
+			entry: path.normalize(mainPath),
+			onData: (data: Buffer) => {
 				this.context.mainWindow.webContents.send(
 					ON_PROCESS_LOG_UPDATE,
-					passMessage("Process already running"),
+					data.toString(),
 				);
-				return;
-			}
-
-			//
-			let mainPath = this.context.fileManager.getPathToMain();
-
-			if (!mainPath) return;
-
-			//
-			this.context.subprocess = Subprocess.instance({
-				entry: path.normalize(mainPath),
-				onData: (data: Buffer) => {
+			},
+			onError: (data: Buffer) => {
+				this.context.mainWindow.webContents.send(
+					ON_PROCESS_LOG_UPDATE,
+					`ERROR: ${data.toString()}`,
+				);
+			},
+			onExit: (code: number, signal: NodeJS.Signals) => {
+				if (!this.context.mainWindow.isDestroyed()) {
 					this.context.mainWindow.webContents.send(
 						ON_PROCESS_LOG_UPDATE,
-						data.toString(),
+						passMessage(
+							`Process exited with code: ${code} and signal:${signal}`,
+						),
 					);
-				},
-				onError: (data: Buffer) => {
-					this.context.mainWindow.webContents.send(
-						ON_PROCESS_LOG_UPDATE,
-						`ERROR: ${data.toString()}`,
-					);
-				},
-				onExit: (code: number, signal: NodeJS.Signals) => {
-					if (!this.context.mainWindow.isDestroyed()) {
-						this.context.mainWindow.webContents.send(
-							ON_PROCESS_LOG_UPDATE,
-							passMessage(
-								`Process exited with code: ${code} and signal:${signal}`,
-							),
-						);
-					}
-				},
-			});
-
-			//
-			this.context.mainWindow.webContents.send(
-				ON_PROCESS_LOG_UPDATE,
-				passMessage(
-					`starting and external process with entry: ${this.context.subprocess.entry}`,
-				),
-			);
-
-			return;
+				}
+			},
 		});
+
+		//
+		this.context.mainWindow.webContents.send(
+			ON_PROCESS_LOG_UPDATE,
+			passMessage(
+				`starting and external process with entry: ${this.context.subprocess.entry}`,
+			),
+		);
+
+		return;
 	}
 }

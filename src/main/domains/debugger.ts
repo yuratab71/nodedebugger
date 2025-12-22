@@ -1,3 +1,5 @@
+import { Breakpoints } from "@mui/material";
+import { Entry } from "type-fest";
 import { Parameters, Result } from "../global";
 import { Logger } from "../modules/logger";
 import { WS } from "../modules/wsdbserver";
@@ -81,7 +83,9 @@ export class DebuggerDomain {
 		loc: Debugger.LocationWithUrl,
 	): Promise<Result<Debugger.SetBreakPonitByUrlReturn> | null> {
 		this.logger.log(`received location: ${loc.lineNumber}`);
-		return await this.ws.sendAndReceive(
+		return await this.ws.sendAndReceive<
+			Result<Debugger.SetBreakPonitByUrlReturn>
+		>(
 			id,
 			this.buildMessage<Debugger.SetBreakpointByUrlParams>({
 				id: id,

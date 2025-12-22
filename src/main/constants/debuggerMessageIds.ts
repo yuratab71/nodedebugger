@@ -1,4 +1,4 @@
-export const InspectorMessageIds = {
+export const Ids = {
 	RUNTIME: {
 		RUN_IF_WAITING_FOR_DEBUGGER: 11,
 		GET_MEMORY_USAGE: 12,

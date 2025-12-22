@@ -1,11 +1,11 @@
 import { RawData, WebSocket } from "ws";
-import { wsStatus } from "../constants/wsStatus";
+import { Status } from "../constants/status";
 import { InspectorMessage } from "../types/message.types";
 import { Logger } from "./logger";
 
 type WsInitParams = {
 	url?: string;
-	onStatusUpdateCallback: (status: wsStatus) => void;
+	onStatusUpdateCallback: (status: Status) => void;
 	onMessageCallback: (msg: InspectorMessage) => void;
 };
 
@@ -15,7 +15,7 @@ export class WS {
 	private readonly RETRY_DELAY = 50;
 	private readonly logger: Logger;
 	public url: string;
-	public status = wsStatus.NOT_ACTIVE;
+	public status = Status.NOT_ACTIVE;
 	private readonly pendingRequests: Map<string | undefined, InspectorMessage>;
 
 	static #instance: WS;
@@ -49,17 +49,17 @@ export class WS {
 		this.webSocket = new WebSocket(this.url);
 
 		this.webSocket.on("error", () => {
-			this.status = wsStatus.ERROR;
+			this.status = Status.ERROR;
 			onStatusUpdateCallback(this.status);
 		});
 
 		this.webSocket.on("open", () => {
-			this.status = wsStatus.CONNECTED;
+			this.status = Status.CONNECTED;
 			onStatusUpdateCallback(this.status);
 		});
 
 		this.webSocket.on("close", () => {
-			this.status = wsStatus.DISCONNECTED;
+			this.status = Status.DISCONNECTED;
 			onStatusUpdateCallback(this.status);
 		});
 
@@ -111,7 +111,7 @@ export class WS {
 				setTimeout(() => {
 					const resp = this.pendingRequests.get(id.toString());
 					if (resp) {
-						resolve(resp as T);
+						resolve(resp);
 						this.pendingRequests.delete(id.toString());
 					}
 				}, this.RETRY_DELAY);

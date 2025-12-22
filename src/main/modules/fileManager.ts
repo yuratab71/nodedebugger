@@ -71,21 +71,18 @@ export class FileManager {
 
 	private resolveDirectoryFiles(dir: string): Entry[] {
 		const entries = fs.readdirSync(dir);
-
-		if (entries.length === 0) return [];
-
 		const result: Entry[] = [];
 
-		for (const entry of entries) {
-			const stats = fs.statSync(path.join(dir, entry));
-			const location = path.join(dir, entry);
+		for (let i = 0; i < entries.length; i++) {
+			const stats = fs.statSync(path.join(dir, entries[i]));
+			const location = path.join(dir, entries[i]);
 			result.push({
-				name: entry,
+				name: entries[i],
 				inspectorUrl: "",
 				scriptId: "",
 				path: location,
 				isDir: stats.isDirectory(),
-				extension: path.extname(entry),
+				extension: path.extname(entries[i]),
 				sources: [],
 				sourceMap: null,
 			});
